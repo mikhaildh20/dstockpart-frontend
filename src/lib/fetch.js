@@ -5,8 +5,10 @@ const JWT_TOKEN_KEY = "jwtToken";
 const USER_DATA_KEY = "userData";
 const UNAUTHORIZED_PAGE = "/pages/auth/unauthorized";
 const LOGIN_PAGE = "/pages/auth/login";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const apiClient = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -110,4 +112,4 @@ const fetchData = async (url, param = {}, method = "POST", isFormData = false) =
 
 
 export default fetchData;
-export { JWT_TOKEN_KEY, USER_DATA_KEY };
+export { API_BASE_URL, JWT_TOKEN_KEY, USER_DATA_KEY };

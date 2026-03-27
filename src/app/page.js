@@ -1,66 +1,84 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from "next/link";
+
+const metrics = [
+  { label: "Stock Active", value: "128", note: "Item monitored today" },
+  { label: "Low Stock", value: "14", note: "Need restock follow-up" },
+  { label: "Schedule Running", value: "07", note: "Production line active" },
+];
+
+const activities = [
+  { title: "Line A schedule revised", time: "08:15", status: "Updated" },
+  { title: "Part P-204 stock received", time: "09:20", status: "Inbound" },
+  { title: "Model X demand spike", time: "10:05", status: "Alert" },
+];
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
+    <div className="dashboard-page">
+      <section className="hero-panel">
+        <div>
+          <span className="hero-kicker">Public Dashboard</span>
+          <h1>Monitoring stock dan schedule tetap bisa dilihat tanpa login.</h1>
           <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+            Login dipakai khusus untuk input stock dan update schedule. Template ini
+            sudah siap dipakai sebagai pondasi halaman operasional.
           </p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="hero-actions">
+          <Link href="/pages/auth/login" className="btn btn-warning rounded-pill px-4">
+            Login Admin
+          </Link>
+          <Link href="/pages/stock" className="btn btn-outline-light rounded-pill px-4">
+            Cek Menu Admin
+          </Link>
         </div>
-      </main>
+      </section>
+
+      <section className="metrics-grid">
+        {metrics.map((item) => (
+          <article key={item.label} className="metric-card">
+            <p>{item.label}</p>
+            <h2>{item.value}</h2>
+            <span>{item.note}</span>
+          </article>
+        ))}
+      </section>
+
+      <section className="content-grid">
+        <article className="content-card">
+          <div className="card-heading">
+            <div>
+              <p className="section-tag">Live Activity</p>
+              <h3>Recent monitoring feed</h3>
+            </div>
+            <span className="status-pill">Realtime Template</span>
+          </div>
+
+          <div className="activity-list">
+            {activities.map((item) => (
+              <div key={`${item.title}-${item.time}`} className="activity-item">
+                <div>
+                  <h4>{item.title}</h4>
+                  <p>{item.time}</p>
+                </div>
+                <span>{item.status}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="content-card accent-card">
+          <p className="section-tag">Admin Access</p>
+          <h3>Hak akses login</h3>
+          <ul className="feature-list">
+            <li>Input stock baru</li>
+            <li>Update schedule produksi</li>
+            <li>Validasi session dengan JWT token</li>
+            <li>Template sidebar untuk public dan admin menu</li>
+          </ul>
+        </article>
+      </section>
     </div>
   );
 }
