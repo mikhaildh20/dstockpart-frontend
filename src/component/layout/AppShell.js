@@ -27,7 +27,7 @@ export default function AppShell({ children }) {
 
       <main className="app-content">
         <header className="content-header">
-          <div className="content-toolbar">
+          <div className="content-toolbar d-flex align-items-center justify-content-between gap-3">
             <button
               type="button"
               className="sidebar-toggle-btn mobile-only"
@@ -36,11 +36,19 @@ export default function AppShell({ children }) {
             >
               <i className="bi bi-list" />
             </button>
-          </div>
 
-          <div className="content-header-copy text-start">
-            <h3 className="fw-medium mb-1">Stock Part</h3>
-            <h4 className="fw-normal mb-0 text-secondary">Monitoring Dashboard</h4>
+            <div className="content-brand d-flex align-items-center ms-auto">
+              <img
+                src="/images/logoKoito.png"
+                alt="Koito Logo"
+                className="content-brand-logo"
+                style={{
+                  width: 88,
+                  height: 28,
+                  objectFit: "contain",
+                }}
+              />
+            </div>
           </div>
         </header>
 

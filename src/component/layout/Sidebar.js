@@ -125,15 +125,14 @@ export default function Sidebar({
       {/* Overlay — mobile only */}
       {isOpen && (
         <div
-          className="d-md-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
-          style={{ zIndex: 1040 }}
+          className="sidebar-backdrop d-md-none"
           onClick={onClose}
           aria-hidden
         />
       )}
 
       <aside
-        className="d-flex flex-column bg-white border-end"
+        className="sidebar-panel d-flex flex-column bg-white border-end"
         style={{
           position: "fixed",
           top: 0,
@@ -143,50 +142,64 @@ export default function Sidebar({
           zIndex: 1050,
           overflow: "hidden",
           transition: "width 0.25s ease, transform 0.25s ease",
-          // Mobile: slide in/out; Desktop: always visible
-          transform: isOpen ? "translateX(0)" : undefined,
         }}
       >
         {/* ── Topbar ── */}
         <div
-          className={`d-flex align-items-center border-bottom px-2 flex-shrink-0 ${
-            isCollapsed ? "justify-content-center" : ""
+          className={`position-relative border-bottom px-2 flex-shrink-0 ${
+            isCollapsed ? "d-flex align-items-center justify-content-center" : ""
           }`}
-          style={{ height: 56, gap: 8 }}
+          style={{ minHeight: isCollapsed ? 56 : 88, gap: 8 }}
         >
           {!isCollapsed && (
-            <div className="d-flex align-items-center justify-content-center flex-grow-1 overflow-hidden">
-              <img
-                src="/images/logoKoito.png"
-                alt="Koito Logo"
-                className="sidebar-koito-logo flex-shrink-0"
-                style={{
-                  width: 88,
-                  height: 28,
-                  objectFit: "contain",
-                }}
-              />
+            <div className="position-relative d-flex flex-column align-items-start justify-content-center py-3 px-2">
+              <button
+                type="button"
+                className="btn btn-sm btn-light d-none d-md-flex align-items-center justify-content-center p-0 border-0 position-absolute top-0 end-0 flex-shrink-0"
+                style={{ width: 28, height: 28 }}
+                onClick={onToggleCollapse}
+                aria-label="Toggle sidebar"
+              >
+                <i
+                  className={`bi ${isCollapsed ? "bi-layout-sidebar" : "bi-layout-sidebar-reverse"}`}
+                  style={{ fontSize: 14 }}
+                />
+              </button>
+
+              <div className="text-start">
+                <h3 className="fw-medium mb-1" style={{ fontSize: 18 }}>
+                  Stock Part
+                </h3>
+                <h4
+                  className="fw-normal mb-0 text-secondary"
+                  style={{ fontSize: 14 }}
+                >
+                  Monitoring Dashboard
+                </h4>
+              </div>
             </div>
           )}
 
           {/* Desktop: collapse toggle */}
-          <button
-            type="button"
-            className="btn btn-sm btn-light d-none d-md-flex align-items-center justify-content-center p-0 border-0 flex-shrink-0"
-            style={{ width: 28, height: 28, margin: isCollapsed ? "0 auto" : undefined }}
-            onClick={onToggleCollapse}
-            aria-label="Toggle sidebar"
-          >
-            <i
-              className={`bi ${isCollapsed ? "bi-layout-sidebar" : "bi-layout-sidebar-reverse"}`}
-              style={{ fontSize: 14 }}
-            />
-          </button>
+          {isCollapsed && (
+            <button
+              type="button"
+              className="btn btn-sm btn-light d-none d-md-flex align-items-center justify-content-center p-0 border-0 flex-shrink-0"
+              style={{ width: 28, height: 28, margin: "0 auto" }}
+              onClick={onToggleCollapse}
+              aria-label="Toggle sidebar"
+            >
+              <i
+                className={`bi ${isCollapsed ? "bi-layout-sidebar" : "bi-layout-sidebar-reverse"}`}
+                style={{ fontSize: 14 }}
+              />
+            </button>
+          )}
 
           {/* Mobile: close */}
           <button
             type="button"
-            className="btn btn-sm btn-light d-flex d-md-none align-items-center justify-content-center p-0 border-0 flex-shrink-0"
+            className="btn btn-sm btn-light d-flex d-md-none align-items-center justify-content-center p-0 border-0 flex-shrink-0 position-absolute top-0 end-0 m-2"
             style={{ width: 28, height: 28 }}
             onClick={onClose}
             aria-label="Close sidebar"
