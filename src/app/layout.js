@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import Sidebar from "@/component/layout/Sidebar";
+import ToastProvider from "@/component/common/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,10 +23,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <div className="app-shell">
-          <Sidebar />
-          <main className="app-content">{children}</main>
-        </div>
+        {children}
+        <ToastProvider />
       </body>
     </html>
   );

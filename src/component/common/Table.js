@@ -47,7 +47,13 @@ export default function Table({
     return cols;
   }, [data, enableCheckbox]);
 
-  if (!data || data.length === 0) return <p>No data.</p>;
+  if (!data || data.length === 0) {
+    return (
+      <p className="text-secondary mb-0" style={{ fontSize: 13 }}>
+        No data.
+      </p>
+    );
+  }
 
   const selectableItems = data.filter((item) => isRowSelectable(item));
   const isAllSelected =
@@ -55,8 +61,7 @@ export default function Table({
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      const allIds = selectableItems.map((item) => item.id);
-      setSelectedIds(allIds);
+      setSelectedIds(selectableItems.map((item) => item.id));
     } else {
       setSelectedIds([]);
     }
@@ -71,11 +76,14 @@ export default function Table({
   };
 
   return (
-    <div className="table-responsive shadow-sm rounded-4">
+    <div
+      className="table-responsive rounded-2"
+      style={{ border: "1px solid #e0e0e0" }}
+    >
       <table
-        style={{ whiteSpace: "nowrap" }}
+        style={{ whiteSpace: "nowrap", fontSize: 13 }}
         className={`table table-hover table-borderless m-0 ${
-          size === "Small" ? "table-sm small" : ""
+          size === "Small" ? "table-sm" : ""
         }`}
       >
         <TableHeader

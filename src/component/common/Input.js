@@ -19,16 +19,16 @@ export default function Input({
   autoComplete = "off",
   maxLength,
 }) {
-  const sizeClasses = {
-    sm: "form-control-sm",
-    md: "form-control",
-    lg: "form-control-lg",
+  const sizeStyles = {
+    sm: { height: 32, fontSize: 12 },
+    md: { height: 38, fontSize: 13 },
+    lg: { height: 44, fontSize: 14 },
   };
 
-  const sizeClass = sizeClasses[size] || "";
+  const sizeStyle = sizeStyles[size] || sizeStyles.md;
 
   return (
-    <div className={`mb-2 ${className}`}>
+    <div className={`mb-3 ${className}`}>
       {label && (
         <Label
           htmlFor={id || name}
@@ -40,9 +40,7 @@ export default function Input({
 
       <input
         type={type}
-        className={`form-control rounded-5 ${sizeClass} ${
-          error ? "is-invalid" : ""
-        }`}
+        className={`form-control rounded-2 ${error ? "is-invalid" : ""}`}
         id={id || name}
         name={name}
         value={value}
@@ -53,10 +51,27 @@ export default function Input({
         readOnly={readOnly}
         autoComplete={autoComplete}
         maxLength={maxLength}
+        style={sizeStyle}
       />
 
-      {helperText && !error && <div className="form-text">{helperText}</div>}
-      {error && <div className="invalid-feedback d-block">{error}</div>}
+      {helperText && !error && (
+        <div className="form-text" style={{ fontSize: 12 }}>
+          {helperText}
+        </div>
+      )}
+
+      {error && (
+        <span
+          className="d-flex align-items-center gap-1 mt-1"
+          style={{ fontSize: 12, color: "#a32d2d" }}
+        >
+          <i
+            className="bi bi-exclamation-circle-fill"
+            style={{ fontSize: 12 }}
+          />
+          {error}
+        </span>
+      )}
     </div>
   );
 }

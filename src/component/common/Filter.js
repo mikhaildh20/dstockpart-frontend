@@ -31,7 +31,7 @@ export default function Filter({ children, onClick }) {
         {children}
         <div className="d-flex justify-content-end mt-3">
           <Button
-            classType="success"
+            classType="primary"
             iconName="save"
             title="Apply"
             label="Apply"

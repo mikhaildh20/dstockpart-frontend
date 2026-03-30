@@ -18,17 +18,11 @@ export default function Paging({
     buttons.push(
       <Button
         key="prev"
-        classType="success rounded-circle shadow-sm"
+        classType="light"
         isDisabled={pageCurrent === 1}
         onClick={() => navigation(pageCurrent - 1)}
-        style={{ 
-          width: 36, 
-          height: 36, 
-          padding: 0,
-          transition: "all 0.2s ease",
-        }}
-        cssIcon="text-white"
         iconName="chevron-left"
+        iconOnly
       />
     );
 
@@ -45,50 +39,39 @@ export default function Paging({
     uniquePages.forEach((page) => {
       if (page - lastPage > 1) {
         buttons.push(
-          <span 
-            key={`dots-${page}`} 
-            className="mx-2 text-muted fw-bold"
-            style={{ 
-              fontSize: "1.1rem",
-              userSelect: "none"
-            }}
+          <span
+            key={`dots-${page}`}
+            className="mx-1 text-secondary"
+            style={{ fontSize: 13, userSelect: "none" }}
           >
             ···
           </span>
         );
       }
 
+      const isActive = page === pageCurrent;
       buttons.push(
         <button
           key={page}
-          className={`btn btn-sm mx-1 ${
-            page === pageCurrent 
-              ? "btn-success shadow-sm text-white" // Tambahin text-white di sini
-              : "btn-light text-secondary"
-          }`}
+          className="btn"
           onClick={() => navigation(page)}
           style={{
-            minWidth: "36px",
-            height: "36px",
-            fontWeight: page === pageCurrent ? "600" : "500",
-            borderRadius: "0.5rem",
-            transition: "all 0.2s ease",
-            border: page === pageCurrent ? "none" : "1px solid #e9ecef",
-            color: page === pageCurrent ? "#ffffff" : "#6c757d", // Explicitly set warna text
+            minWidth: 34,
+            height: 34,
+            fontSize: 13,
+            fontWeight: isActive ? 500 : 400,
+            borderRadius: 8,
+            padding: "0 10px",
+            border: isActive ? "none" : "1px solid #e0e0e0",
+            background: isActive ? "#185fa5" : "transparent",
+            color: isActive ? "#fff" : "#6b6b6b",
+            transition: "background 0.12s",
           }}
           onMouseEnter={(e) => {
-            if (page !== pageCurrent) {
-              e.currentTarget.style.backgroundColor = "#f8f9fa";
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-            }
+            if (!isActive) e.currentTarget.style.background = "#f5f5f4";
           }}
           onMouseLeave={(e) => {
-            if (page !== pageCurrent) {
-              e.currentTarget.style.backgroundColor = "";
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "";
-            }
+            if (!isActive) e.currentTarget.style.background = "transparent";
           }}
         >
           {page}
@@ -101,17 +84,11 @@ export default function Paging({
     buttons.push(
       <Button
         key="next"
-        classType="btn btn-success rounded-circle shadow-sm"
+        classType="light"
         isDisabled={pageCurrent === totalPage}
         onClick={() => navigation(pageCurrent + 1)}
-        style={{ 
-          width: 36, 
-          height: 36, 
-          padding: 0,
-          transition: "all 0.2s ease",
-        }}
-        cssIcon="text-white"
         iconName="chevron-right"
+        iconOnly
       />
     );
 
@@ -121,57 +98,29 @@ export default function Paging({
   return (
     <div className="py-3 px-2">
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div className="d-flex align-items-center gap-1">
-          {pageButtons}
-        </div>
-        
-        <div 
-          className="text-secondary d-flex align-items-center gap-1"
+        <div className="d-flex align-items-center gap-1">{pageButtons}</div>
+
+        <div
+          className="d-flex align-items-center gap-1"
           style={{
-            fontSize: "0.875rem",
-            padding: "0.5rem 1rem",
-            backgroundColor: "#f8f9fa",
-            borderRadius: "0.5rem",
-            border: "1px solid #e9ecef",
+            fontSize: 13,
+            color: "#6b6b6b",
+            background: "#f5f5f4",
+            borderRadius: 8,
+            padding: "6px 12px",
+            border: "1px solid #e0e0e0",
           }}
         >
           <span>Showing</span>
-          <span 
-            className="fw-semibold text-success px-1"
-            style={{
-              fontSize: "0.9375rem",
-            }}
-          >
+          <span className="fw-medium px-1" style={{ color: "#185fa5" }}>
             {startData}–{endData}
           </span>
           <span>of</span>
-          <span 
-            className="fw-semibold text-success px-1"
-            style={{
-              fontSize: "0.9375rem",
-            }}
-          >
+          <span className="fw-medium px-1" style={{ color: "#185fa5" }}>
             {totalData}
           </span>
         </div>
       </div>
-
-      <style jsx>{`
-        .btn-success:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25) !important;
-        }
-
-        .btn-success:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-
-        .btn:focus {
-          outline: none;
-          box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
-        }
-      `}</style>
     </div>
   );
 }

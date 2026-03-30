@@ -5,7 +5,7 @@ const JWT_TOKEN_KEY = "jwtToken";
 const USER_DATA_KEY = "userData";
 const UNAUTHORIZED_PAGE = "/pages/auth/unauthorized";
 const LOGIN_PAGE = "/pages/auth/login";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -56,6 +56,9 @@ apiClient.interceptors.response.use(
 
 const fetchData = async (url, param = {}, method = "POST", isFormData = false) => {
   const normalizedMethod = method.toUpperCase();
+  const normalizedUrl = url.startsWith("http")
+    ? url
+    : url.replace(/^\/+/, "");
 
   try {
     let config = {};
@@ -69,16 +72,16 @@ const fetchData = async (url, param = {}, method = "POST", isFormData = false) =
     let response;
     switch (normalizedMethod) {
       case "GET":
-        response = await apiClient.get(url, { params: param });
+        response = await apiClient.get(normalizedUrl, { params: param });
         break;
       case "POST":
-        response = await apiClient.post(url, param, config);
+        response = await apiClient.post(normalizedUrl, param, config);
         break;
       case "PUT":
-        response = await apiClient.put(url, param, config);
+        response = await apiClient.put(normalizedUrl, param, config);
         break;
       case "DELETE":
-        response = await apiClient.delete(url, { data: param });
+        response = await apiClient.delete(normalizedUrl, { data: param });
         break;
       default:
         throw new Error(`Metode not supported: ${method}`);

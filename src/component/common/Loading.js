@@ -3,7 +3,7 @@ import { BarLoader } from "react-spinners";
 
 export default function Loading({
   loading = false,
-  color = "#0d6efd",
+  color = "#185fa5",
   size = 60,
   message = "",
 }) {
@@ -11,7 +11,6 @@ export default function Loading({
 
   return (
     <div
-      className="loading-overlay"
       style={{
         position: "fixed",
         top: 0,
@@ -29,9 +28,9 @@ export default function Loading({
     >
       <BarLoader color={color} size={size} />
       {message && (
-        <div className="mt-3 fw-semibold" style={{ fontSize: "0.95rem" }}>
+        <p className="fw-medium mb-0 mt-3" style={{ fontSize: 13, color: "#6b6b6b" }}>
           {message}
-        </div>
+        </p>
       )}
     </div>
   );

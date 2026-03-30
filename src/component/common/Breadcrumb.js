@@ -1,42 +1,54 @@
+"use client";
+
 import PropTypes from "prop-types";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Breadcrumb({ title, items }) {
-    return (
-        <div>
-        <h5 className="fw-bold mb-1">{title}</h5>
-        <nav className="mb-3" aria-label="breadcrumb">
-            <ol className="breadcrumb mb-0">
-            {items.map((item, index) => (
-                <li
-                style={{ fontSize: "13px" }}
+  const router = useRouter();
+
+  return (
+    <div className="mb-3">
+      <h5 className="fw-medium mb-1" style={{ fontSize: 18 }}>
+        {title}
+      </h5>
+      <nav aria-label="breadcrumb">
+        <ol className="breadcrumb mb-0">
+          {items.map((item, index) => {
+            const isLast = index === items.length - 1;
+            return (
+              <li
                 key={item.label}
-                className={`breadcrumb-item ${
-                    index === items.length - 1 ? "active" : ""
-                }`}
-                aria-current={index === items.length - 1 ? "page" : undefined}
-                >
+                className={`breadcrumb-item ${isLast ? "active" : ""}`}
+                style={{ fontSize: 13 }}
+                aria-current={isLast ? "page" : undefined}
+              >
                 {item.href ? (
-                    <Link href={item.href} className="text-decoration-none text-danger">
+                  <button
+                    type="button"
+                    className="btn btn-link p-0 text-decoration-none"
+                    style={{ fontSize: 13, color: "#185fa5" }}
+                    onClick={() => router.push(item.href)}
+                  >
                     {item.label}
-                    </Link>
+                  </button>
                 ) : (
-                    item.label
+                  item.label
                 )}
-                </li>
-            ))}
-            </ol>
-        </nav>
-        </div>
-    );
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    </div>
+  );
 }
 
 Breadcrumb.propTypes = {
-    title: PropTypes.string.isRequired,
-    items: PropTypes.arrayOf(
-        PropTypes.shape({
-        label: PropTypes.string.isRequired,
-        href: PropTypes.string,
-        })
-    ).isRequired,
+  title: PropTypes.string.isRequired,
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      href: PropTypes.string,
+    })
+  ).isRequired,
 };

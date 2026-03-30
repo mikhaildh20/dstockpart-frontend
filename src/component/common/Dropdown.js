@@ -44,11 +44,12 @@ const DropDown = (
         />
       )}
       <select
-        className="form-select rounded-4 blue-element"
+        className="form-select rounded-2"
         id={forInput}
         name={forInput}
         ref={ref}
         disabled={isDisabled}
+        style={{ fontSize: 13, height: 38 }}
         {...props}
       >
         {placeholder}
@@ -62,10 +63,14 @@ const DropDown = (
             );
           })}
       </select>
-      {errorMessage ? (
-        <span className="fw-normal text-danger"> {errorMessage}</span>
-      ) : (
-        ""
+      {errorMessage && (
+        <span
+          className="d-flex align-items-center gap-1 mt-1"
+          style={{ fontSize: 12, color: "#a32d2d" }}
+        >
+          <i className="bi bi-exclamation-circle-fill" style={{ fontSize: 12 }} />
+          {errorMessage}
+        </span>
       )}
     </div>
   );

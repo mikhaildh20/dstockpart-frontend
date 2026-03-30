@@ -39,7 +39,8 @@ export default function TableRow({
                   key={`${id}-${action}`}
                   name="toggle-on"
                   type="Bold"
-                  cssClass="btn px-1 py-0 text-success"
+                  cssClass="btn px-1 py-0"
+                  style={{ color: "#185fa5" }}
                   title="Disable"
                   onClick={() => onToggle(id)}
                 />
@@ -50,7 +51,7 @@ export default function TableRow({
                   key={`${id}-${action}`}
                   name="toggle-off"
                   type="Bold"
-                  cssClass="btn px-1 py-0 text-muted"
+                  cssClass="btn px-1 py-0 text-secondary"
                   title="Enable"
                   onClick={() => onToggle(id)}
                 />
@@ -65,17 +66,20 @@ export default function TableRow({
                 key={`${id}-${action}`}
                 name="eye"
                 title="See Detail"
-                cssClass="text-info btn px-1 py-0"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#185fa5" }}
                 onClick={() => onDetail(id)}
               />
             );
+
           case "Cancel":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="file-earmark-x"
                 type="Bold"
-                cssClass="btn px-1 py-0 text-danger"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#a32d2d" }}
                 title="Cancel"
                 onClick={() => onCancel(id)}
               />
@@ -87,95 +91,112 @@ export default function TableRow({
                 key={`${id}-${action}`}
                 name="pencil-square"
                 title="Edit"
-                cssClass="text-warning btn px-1 py-0"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#854f0b" }}
                 onClick={() => onEdit(id)}
               />
             );
+
           case "Delete":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="trash"
                 title="Delete"
-                cssClass="text-danger btn px-1 py-0"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#a32d2d" }}
                 onClick={() => onDelete(id)}
               />
             );
+
           case "Approve":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="check"
                 type="Bold"
-                cssClass="btn px-1 py-0 text-success"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#3b6d11" }}
                 title="Approve Request"
                 onClick={() => onApprove(id)}
               />
             );
+
           case "Reject":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="x"
                 type="Bold"
-                cssClass="btn px-1 py-0 text-danger"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#a32d2d" }}
                 title="Reject Request"
                 onClick={() => onReject(id)}
               />
             );
+
           case "Print":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="printer"
                 title="Print"
-                cssClass="text-secondary btn px-1 py-0"
+                cssClass="btn px-1 py-0 text-secondary"
                 onClick={() => onPrint(id)}
               />
             );
+
           case "Sent":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="send"
                 title="Sent"
-                cssClass="text-primary btn px-1 py-0"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#185fa5" }}
                 onClick={() => onSent(id)}
               />
             );
+
           case "Upload":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="cloud-upload"
                 type="Bold"
-                cssClass="btn px-1 py-0 text-primary"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#185fa5" }}
                 title="Upload File"
                 onClick={() => onUpload(id)}
               />
             );
+
           case "Final":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="hammer"
                 type="Bold"
-                cssClass="btn px-1 py-0 text-primary"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#185fa5" }}
                 title="Finalize"
                 onClick={() => onFinal(id)}
               />
             );
+
           case "Reset":
             return (
               <Icon
                 key={`${id}-${action}`}
                 name="arrow-clockwise"
                 type="Bold"
-                cssClass="btn px-1 py-0 text-warning"
+                cssClass="btn px-1 py-0"
+                style={{ color: "#854f0b" }}
                 title="Reset"
                 onClick={() => onReset(id)}
               />
             );
+
           default: {
             try {
               if (typeof action === "object") {
@@ -184,7 +205,8 @@ export default function TableRow({
                     key={row.id + "Custom" + action.IconName}
                     name={action.IconName}
                     type="Bold"
-                    cssClass="btn px-1 py-0 text-primary"
+                    cssClass="btn px-1 py-0"
+                    style={{ color: "#185fa5" }}
                     title={action.Title}
                     onClick={action.Function}
                   />
@@ -220,22 +242,17 @@ export default function TableRow({
 
   return (
     <tr
-      className={`align-middle transition-all ${
-        isSelected ? "table-active bg-light" : ""
-      } ${customRowClass}`}
+      className={`align-middle ${customRowClass}`}
       style={{
-        transition: "background-color 0.2s ease",
+        transition: "background-color 0.12s",
         cursor: canSelect && enableCheckbox ? "pointer" : "default",
+        backgroundColor: isSelected ? "#e6f1fb" : "transparent",
       }}
       onMouseEnter={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.backgroundColor = "#f8f9fa";
-        }
+        if (!isSelected) e.currentTarget.style.backgroundColor = "#f5f5f4";
       }}
       onMouseLeave={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.backgroundColor = "transparent";
-        }
+        if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
       }}
     >
       {columns.map((col, index) => {
@@ -243,23 +260,17 @@ export default function TableRow({
         const isWrap = config?.isWrap?.[col] || false;
 
         if (enableCheckbox && col === "Check") {
-          if (canSelect) {
-            cell = (
-              <input
-                type="checkbox"
-                className="form-check-input shadow-sm"
-                checked={isSelected}
-                onChange={() => onSelectRow(row.id)}
-                style={{ 
-                  cursor: "pointer",
-                  width: "18px",
-                  height: "18px"
-                }}
-              />
-            );
-          } else {
-            cell = <span className="text-muted small"></span>;
-          }
+          cell = canSelect ? (
+            <input
+              type="checkbox"
+              className="form-check-input"
+              checked={isSelected}
+              onChange={() => onSelectRow(row.id)}
+              style={{ cursor: "pointer", width: 16, height: 16 }}
+            />
+          ) : (
+            <span className="text-secondary" style={{ fontSize: 13 }} />
+          );
         } else if (col === "Status") {
           cell = <Badge status={row[col]} />;
         } else if (col === "Action") {
@@ -272,25 +283,19 @@ export default function TableRow({
           cell = (
             <div
               className="px-2"
-              style={{ 
+              style={{
                 whiteSpace: isWrap ? "normal" : "nowrap",
-                fontSize: "0.875rem",
-                color: "#495057"
+                fontSize: 13,
+                color: "#1a1a1a",
               }}
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(row[col]),
               }}
-            ></div>
+            />
           );
         } else {
           cell = (
-            <div 
-              className="px-2"
-              style={{
-                fontSize: "0.875rem",
-                color: "#495057"
-              }}
-            >
+            <div className="px-2" style={{ fontSize: 13, color: "#1a1a1a" }}>
               {row[col]}
             </div>
           );
@@ -299,11 +304,11 @@ export default function TableRow({
         return (
           <td
             key={col + "-" + index}
-            className="py-3 border-bottom"
+            className="py-2"
             style={{
               textAlign: row.Alignment ? row.Alignment[index] : "center",
               verticalAlign: "middle",
-              borderColor: "#e9ecef",
+              borderBottom: "1px solid #e0e0e0",
             }}
           >
             {cell}

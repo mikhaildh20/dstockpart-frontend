@@ -9,7 +9,7 @@ export default function TableHeader({
 }) {
   return (
     <thead className="position-sticky top-0" style={{ zIndex: 10 }}>
-      <tr className="border-bottom border-2">
+      <tr>
         {columns.map((col, i) => {
           let width = "auto";
 
@@ -22,28 +22,25 @@ export default function TableHeader({
           return (
             <th
               key={col + "-" + i}
-              className="text-center align-middle py-3 px-3 bg-white text-uppercase fw-semibold text-secondary"
+              className="text-center align-middle py-2 px-3 bg-white fw-medium"
               style={{
                 whiteSpace: "nowrap",
                 width: width,
-                fontSize: "0.75rem",
-                letterSpacing: "0.5px",
-                borderBottom: "2px solid #dee2e6",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                fontSize: 11,
+                letterSpacing: "0.6px",
+                textTransform: "uppercase",
+                color: "#b0b0b0",
+                borderBottom: "1px solid #e0e0e0",
               }}
               title={col === "Check" ? "Pilih Semua" : col}
             >
               {enableCheckbox && col === "Check" ? (
                 <input
                   type="checkbox"
-                  className="form-check-input shadow-sm"
+                  className="form-check-input"
                   checked={isAllSelected}
                   onChange={onSelectAll}
-                  style={{ 
-                    cursor: "pointer",
-                    width: "18px",
-                    height: "18px"
-                  }}
+                  style={{ cursor: "pointer", width: 16, height: 16 }}
                 />
               ) : (
                 col
