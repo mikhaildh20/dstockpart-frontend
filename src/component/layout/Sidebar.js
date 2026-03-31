@@ -36,10 +36,12 @@ export default function Sidebar({
   ];
 
   const adminMenus = [
-    { href: "/pages/line", label: "Manage Line", icon: "bi-diagram-3" },
-    { href: "/pages/model", label: "Manage Model", icon: "bi-box" },
-    { href: "/pages/part", label: "Manage Part", icon: "bi-gear" },
-    { href: "/pages/section", label: "Manage Section", icon: "bi-layout-split" },
+    { href: "/pages/line", label: "Line", icon: "bi-diagram-3" },
+    { href: "/pages/model", label: "Model", icon: "bi-box" },
+    { href: "/pages/part", label: "Part", icon: "bi-gear" },
+    { href: "/pages/section", label: "Section", icon: "bi-layout-split" },
+    { href: "/pages/plan", label: "Plan", icon: "bi-calendar-check" },
+    { href: "/pages/wip", label: "Work in Progress", icon: "bi-clipboard-data" },
   ];
 
   const handleLogout = async () => {
