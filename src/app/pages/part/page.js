@@ -13,17 +13,19 @@ import SweetAlert from "@/component/common/SweetAlert";
 import Breadcrumb from "@/component/common/Breadcrumb";
 import Loading from "@/component/common/Loading";
 
-export default function LinePage(){
+export default function PartPage(){
     const router = useRouter();
-    const [dataLine, setDataLine] = useState([]);
-    const [dataLineRaw, setDataLineRaw] = useState([]);
+    const [dataPart, setDataPart] = useState([]);
+    const [dataPartRaw, setDataPartRaw] = useState([]);
     const [loading, setLoading] = useState(false);
-    
+
     const sortRef = useRef();
     const statusRef = useRef();
     const dataFilterSort = [
-        { Value: "lne_code ASC", Text: "Line Code [↑]" },
-        { Value: "lne_code DESC", Text: "Line Code [↓]" },
+        { Value: "prt_code ASC", Text: "Part Code [↑]" },
+        { Value: "prt_code DESC", Text: "Part Code [↓]" },
+        { Value: "prt_name ASC", Text: "Part Name [↑]" },
+        { Value: "prt_name DESC", Text: "Part Name [↓]" },
     ];
 
     const dataFilterStatus = [
@@ -42,7 +44,7 @@ export default function LinePage(){
         try{
             setLoading(true);
 
-            const response = await fetchData("lines", 
+            const response = await fetchData("parts", 
                 {
                     Status: status,
                     ...(cari === "" ? {} : { Keyword: cari }),
@@ -59,25 +61,26 @@ export default function LinePage(){
 
             const { data = [], totalData = 0 } = response.data || {};
 
-            setDataLineRaw(response.data.data || []);
+            setDataPartRaw(response.data.data || []);
 
             const pagedData = data.map((item, index) => ({
                 No: (page - 1) * pageSize + index + 1,
                 id: item.Id,
                 Code: item.Code,
+                Name: item.Name,
                 Status: item.Status === 1 ? "Active" : "Inactive",
                 Action: ["Edit", "Toggle", "Detail"],
-                Alignment: ["center", "center","center"],
+                Alignment: ["center", "center","center","center", "center"],
             }));
 
-            setDataLine(pagedData);
+            setDataPart(pagedData);
             setTotalData(totalData || 0);
             setCurrentPage(page);
-        } catch (err) {
+        }catch(err){
             Toast.error(err.message || "Failed to load data");
-            setDataLine([]);
+            setDataPart([]);
             setTotalData(0);
-        } finally {
+        }finally{
             setLoading(false);
         }
     }, [pageSize]);
@@ -102,31 +105,31 @@ export default function LinePage(){
     },[sortBy, search, sortStatus, loadData]);
 
     const handleAdd = useCallback(() => {
-        router.push("/pages/line/add");
+        router.push("/pages/part/add");
     }, [router]);
 
     const handleEdit = useCallback(
         (id) =>
-        router.push(`/pages/line/edit/${encryptIdUrl(id)}`),
+        router.push(`/pages/part/edit/${encryptIdUrl(id)}`),
         [router]
     );
 
     const handleDetail = useCallback(
         (id) => {
-            router.push(`/pages/line/detail/${encryptIdUrl(id)}`);
+            router.push(`/pages/part/detail/${encryptIdUrl(id)}`);
         }
     );
 
     const handleToggle = useCallback(
         async (id) => {
-
-        const line = dataLineRaw.find(item => item.Id === id);
-        const isActive = line?.Status === 1;
+            
+        const part = dataPartRaw.find(item => item.Id === id);
+        const isActive = part?.Status === 1;
         
         if (isActive) {
             const result = await SweetAlert({
-                title: "Disable Line",
-                text: "Are you sure you want to disable this line?",
+                title: "Disable Part",
+                text: "Are you sure you want to disable this part?",
                 icon: "warning",
                 confirmText: "Yes, disable it!",
             });
@@ -138,7 +141,7 @@ export default function LinePage(){
 
         try {
             const data = await fetchData(
-            "lines/toggle-status",
+            "parts/toggle-status",
             {
                 id: id,
             },
@@ -149,7 +152,7 @@ export default function LinePage(){
             throw new Error(data.message);
             }
 
-            Toast.success(data.message || "Line status updated successfully");
+            Toast.success(data.message || "Part status updated successfully");
             await loadData(1, sortBy, search, sortStatus);
         } catch (err) {
             Toast.error(err.message);
@@ -157,7 +160,7 @@ export default function LinePage(){
             setLoading(false);
         }
         },
-        [sortBy, search, sortStatus, loadData, dataLineRaw]
+        [sortBy, search, sortStatus, loadData, dataPartRaw]
     );
 
     useEffect(() => {
@@ -188,11 +191,11 @@ export default function LinePage(){
         [sortBy, sortStatus]
     );
 
-    return (
+return (
         <>
             <Loading loading={loading} message="Loading data..." />
             <Breadcrumb
-                title="Lines Management"
+                title="Parts Management"
                 items={[]}
             />
             <div>
@@ -200,7 +203,7 @@ export default function LinePage(){
                     onSearch={handleSearch}
                     onAdd={handleAdd}
                     onFilter={handleFilterApply}
-                    searchPlaceholder="Search line data"
+                    searchPlaceholder="Search part data"
                     addButtonText="Add"
                     showExportButton={false}
                     filterContent={filterContent}
@@ -211,7 +214,7 @@ export default function LinePage(){
                     <div className="card-body p-0">
                         <Table
                                 size="Small"
-                                data={dataLine}
+                                data={dataPart}
                                 onEdit={handleEdit}
                                 onToggle={handleToggle}
                                 onDetail={handleDetail}

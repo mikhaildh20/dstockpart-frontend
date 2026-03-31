@@ -10,11 +10,13 @@ import Breadcrumb from "@/component/common/Breadcrumb";
 
 const maxLengthRules = {
     code: 50,
+    name: 100,
 }
 
-export default function AddLinePage(){
+export default function AddSectionPage(){
     const [formData, setFormData] = useState({
         code: "",
+        name: "",
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -24,7 +26,6 @@ export default function AddLinePage(){
         (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: "" }));
         }
@@ -36,6 +37,7 @@ export default function AddLinePage(){
         const newErrors = {};
         const requiredFields = {
         code: "Code is required.",
+        name: "Name is required.",
         };
 
         for (const [field, message] of Object.entries(requiredFields)) {
@@ -44,7 +46,6 @@ export default function AddLinePage(){
             newErrors[field] = message;
         }
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     },[formData]);
@@ -52,6 +53,7 @@ export default function AddLinePage(){
     const reset = useCallback(() => {
         setFormData({
             code: "",
+            name: "",
         });
     },[]);
 
@@ -68,21 +70,21 @@ export default function AddLinePage(){
 
             try {
                 const data = await fetchData(
-                "lines/create",
+                "sections/create",
                 formData,
                 "POST"
                 );
 
                 if (!data.error) {
-                Toast.success(data.message || "Line created successfully.");
+                Toast.success(data.message || "Section created successfully.");
                 reset();
-                router.push("/pages/line");
+                router.push("/pages/section");
                 } else {
-                Toast.error(data.message || "Error occured while creating line.");
+                Toast.error(data.message || "Error occured while creating section.");
                 setLoading(false);
                 }
             } catch (err) {
-                Toast.error("Failed to create line! " + err.message);
+                Toast.error("Failed to create section! " + err.message);
                 setLoading(false);
             }
         },
@@ -97,10 +99,10 @@ export default function AddLinePage(){
     return(
         <>
         <Breadcrumb
-            title="Add Line"
+            title="Add Section"
             items={[
-                { label: "Lines Management", href: "/pages/line" },
-                { label: "Add Line" },
+                { label: "Sections Management", href: "/pages/section" },
+                { label: "Add Section" },
             ]}
         />
         <div className="card border-0 shadow-sm">
@@ -116,6 +118,17 @@ export default function AddLinePage(){
                                 onChange={handleChange}
                                 error={errors.code}
                                 maxLength={maxLengthRules.code}
+                            />
+                        </div>
+                        <div className="col-lg-4">
+                            <Input
+                                label="Name"
+                                name="name"
+                                id="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                error={errors.name}
+                                maxLength={maxLengthRules.name}
                             />
                         </div>
                     </div>

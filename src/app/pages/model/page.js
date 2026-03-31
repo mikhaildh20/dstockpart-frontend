@@ -47,7 +47,7 @@ export default function ModelPage(){
             const response = await fetchData("models", 
                 {
                     Status: status,
-                    ...(cari === "" ? {} : { Search: cari }),
+                    ...(cari === "" ? {} : { Keyword: cari }),
                     Urut: sort,
                     PageNumber: page,
                     PageSize: pageSize,
@@ -67,10 +67,12 @@ export default function ModelPage(){
                 No: (page - 1) * pageSize + index + 1,
                 id: item.Id,
                 Line: item.Line ?? "Not assigned yet",
-                Code: item.Code,
+                Model: item.Code,
                 Status: item.Status === 1 ? "Active" : "Inactive",
-                Action: ["Edit", "Toggle", "Detail"],
-                Alignment: ["center", "center","center", "center"],
+                Action: item.Line
+                    ? ["Edit", "Toggle", "Detail"]
+                    : ["Edit", "Toggle"],
+                Alignment: ["center", "center", "center", "center"],
             }));
 
             setDataModels(pagedData);
@@ -115,7 +117,7 @@ export default function ModelPage(){
     );
 
     const handleDetail = useCallback(
-        (id) => router.push(`/pages/model/edit/${encryptIdUrl(id)}`),
+        (id) => router.push(`/pages/model/detail/${encryptIdUrl(id)}`),
         [router]
     );
 

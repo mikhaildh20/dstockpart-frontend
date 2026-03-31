@@ -7,6 +7,7 @@ export default function Table({
   data,
   size = "Normal",
   enableCheckbox = false,
+  initialSelectedIds = [],
   isRowSelectable = () => true,
   onSelectionChange = () => {},
   onToggle = () => {},
@@ -24,11 +25,11 @@ export default function Table({
   config = {},
   rowClassName,
 }) {
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedIds, setSelectedIds] = useState(initialSelectedIds);
 
   useEffect(() => {
-    setSelectedIds([]);
-  }, [data]);
+    setSelectedIds(initialSelectedIds);
+  }, [data, initialSelectedIds]);
 
   useEffect(() => {
     onSelectionChange(selectedIds);
@@ -129,6 +130,7 @@ Table.propTypes = {
   data: PropTypes.arrayOf(PropTypes.object),
   size: PropTypes.oneOf(["Normal", "Small"]),
   enableCheckbox: PropTypes.bool,
+  initialSelectedIds: PropTypes.array,
   isRowSelectable: PropTypes.func,
   onSelectionChange: PropTypes.func,
   onToggle: PropTypes.func,

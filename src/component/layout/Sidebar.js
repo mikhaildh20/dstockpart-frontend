@@ -36,9 +36,11 @@ export default function Sidebar({
   ];
 
   const adminMenus = [
-  { href: "/pages/line", label: "Manage Line", icon: "bi-diagram-3" },
-  { href: "/pages/model", label: "Manage Model", icon: "bi-box" },
-];
+    { href: "/pages/line", label: "Manage Line", icon: "bi-diagram-3" },
+    { href: "/pages/model", label: "Manage Model", icon: "bi-box" },
+    { href: "/pages/part", label: "Manage Part", icon: "bi-gear" },
+    { href: "/pages/section", label: "Manage Section", icon: "bi-layout-split" },
+  ];
 
   const handleLogout = async () => {
     const result = await SweetAlert({

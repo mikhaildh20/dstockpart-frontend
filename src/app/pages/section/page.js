@@ -13,17 +13,17 @@ import SweetAlert from "@/component/common/SweetAlert";
 import Breadcrumb from "@/component/common/Breadcrumb";
 import Loading from "@/component/common/Loading";
 
-export default function LinePage(){
+export default function SectionPage(){
     const router = useRouter();
-    const [dataLine, setDataLine] = useState([]);
-    const [dataLineRaw, setDataLineRaw] = useState([]);
+    const [dataSection, setDataSection] = useState([]);
+    const [dataSectionRaw, setDataSectionRaw] = useState([]);
     const [loading, setLoading] = useState(false);
-    
+
     const sortRef = useRef();
     const statusRef = useRef();
     const dataFilterSort = [
-        { Value: "lne_code ASC", Text: "Line Code [↑]" },
-        { Value: "lne_code DESC", Text: "Line Code [↓]" },
+        { Value: "sec_code ASC", Text: "Section Code [↑]" },
+        { Value: "sec_code DESC", Text: "Section Code [↓]" },
     ];
 
     const dataFilterStatus = [
@@ -42,7 +42,7 @@ export default function LinePage(){
         try{
             setLoading(true);
 
-            const response = await fetchData("lines", 
+            const response = await fetchData("sections", 
                 {
                     Status: status,
                     ...(cari === "" ? {} : { Keyword: cari }),
@@ -59,25 +59,26 @@ export default function LinePage(){
 
             const { data = [], totalData = 0 } = response.data || {};
 
-            setDataLineRaw(response.data.data || []);
+            setDataSectionRaw(response.data.data || []);
 
             const pagedData = data.map((item, index) => ({
                 No: (page - 1) * pageSize + index + 1,
                 id: item.Id,
                 Code: item.Code,
+                Name: item.Name,
                 Status: item.Status === 1 ? "Active" : "Inactive",
                 Action: ["Edit", "Toggle", "Detail"],
-                Alignment: ["center", "center","center"],
+                Alignment: ["center", "center","center","center", "center"],
             }));
 
-            setDataLine(pagedData);
+            setDataSection(pagedData);
             setTotalData(totalData || 0);
             setCurrentPage(page);
-        } catch (err) {
+        }catch(err){
             Toast.error(err.message || "Failed to load data");
-            setDataLine([]);
+            setDataSection([]);
             setTotalData(0);
-        } finally {
+        }finally{
             setLoading(false);
         }
     }, [pageSize]);
@@ -102,31 +103,31 @@ export default function LinePage(){
     },[sortBy, search, sortStatus, loadData]);
 
     const handleAdd = useCallback(() => {
-        router.push("/pages/line/add");
+        router.push("/pages/section/add");
     }, [router]);
 
     const handleEdit = useCallback(
         (id) =>
-        router.push(`/pages/line/edit/${encryptIdUrl(id)}`),
+        router.push(`/pages/section/edit/${encryptIdUrl(id)}`),
         [router]
     );
 
     const handleDetail = useCallback(
         (id) => {
-            router.push(`/pages/line/detail/${encryptIdUrl(id)}`);
+            router.push(`/pages/section/detail/${encryptIdUrl(id)}`);
         }
     );
 
     const handleToggle = useCallback(
         async (id) => {
-
-        const line = dataLineRaw.find(item => item.Id === id);
-        const isActive = line?.Status === 1;
+            
+        const section = dataSectionRaw.find(item => item.Id === id);
+        const isActive = section?.Status === 1;
         
         if (isActive) {
             const result = await SweetAlert({
-                title: "Disable Line",
-                text: "Are you sure you want to disable this line?",
+                title: "Disable Section",
+                text: "Are you sure you want to disable this section?",
                 icon: "warning",
                 confirmText: "Yes, disable it!",
             });
@@ -138,7 +139,7 @@ export default function LinePage(){
 
         try {
             const data = await fetchData(
-            "lines/toggle-status",
+            "sections/toggle-status",
             {
                 id: id,
             },
@@ -149,7 +150,7 @@ export default function LinePage(){
             throw new Error(data.message);
             }
 
-            Toast.success(data.message || "Line status updated successfully");
+            Toast.success(data.message || "Section status updated successfully");
             await loadData(1, sortBy, search, sortStatus);
         } catch (err) {
             Toast.error(err.message);
@@ -157,7 +158,7 @@ export default function LinePage(){
             setLoading(false);
         }
         },
-        [sortBy, search, sortStatus, loadData, dataLineRaw]
+        [sortBy, search, sortStatus, loadData, dataSectionRaw]
     );
 
     useEffect(() => {
@@ -188,11 +189,11 @@ export default function LinePage(){
         [sortBy, sortStatus]
     );
 
-    return (
+return (
         <>
             <Loading loading={loading} message="Loading data..." />
             <Breadcrumb
-                title="Lines Management"
+                title="Sections Management"
                 items={[]}
             />
             <div>
@@ -200,7 +201,7 @@ export default function LinePage(){
                     onSearch={handleSearch}
                     onAdd={handleAdd}
                     onFilter={handleFilterApply}
-                    searchPlaceholder="Search line data"
+                    searchPlaceholder="Search section data"
                     addButtonText="Add"
                     showExportButton={false}
                     filterContent={filterContent}
@@ -211,7 +212,7 @@ export default function LinePage(){
                     <div className="card-body p-0">
                         <Table
                                 size="Small"
-                                data={dataLine}
+                                data={dataSection}
                                 onEdit={handleEdit}
                                 onToggle={handleToggle}
                                 onDetail={handleDetail}

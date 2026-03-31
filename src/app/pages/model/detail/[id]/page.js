@@ -13,22 +13,22 @@ import { decryptIdUrl } from "@/lib/encryptor";
 import Loading from "@/component/common/Loading";
 import Formsearch from "@/component/common/Formsearch";
 
-export default function DetailLinePage(){
+export default function ModelDetailPage() {
     const path = useParams();
     const router = useRouter();
     const id = decryptIdUrl(path.id);
-    const [dataModels, setDataModels] = useState([]);
+    const [dataParts, setDataParts] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const [title, setTitle] = useState("");
-    const [selectedModels, setSelectedModels] = useState([]);
+    const [selectedParts, setSelectedParts] = useState([]);
     const [initialSelected, setInitialSelected] = useState([]);
 
     const loadDetails = useCallback(async () => {
         try{
             setLoading(true);
-
-            const response = await fetchData(`lines/${id}`, {}, "GET");
+            
+            const response = await fetchData(`models/${id}`,{},"GET");
 
             if (response.error) {
                 throw new Error(response.message);
@@ -37,12 +37,12 @@ export default function DetailLinePage(){
             const data = response.data || {};
 
             if(response){
-                setTitle(`Detail Line - ${data.Code || "N/A"}`);
+                setTitle(`Detail Model - ${data.Code || "N/A"}`);
             }else{
-                throw new Error("Failed to fetch line data");
+                throw new Error("Failed to load model data");
             }
         }catch(err){
-            Toast.error(err.message || "An error occurred while fetching line data");
+            Toast.error(err.message || "Error loading model details");
             router.back();
         }finally{
             setLoading(false);
@@ -56,39 +56,39 @@ export default function DetailLinePage(){
     }, [id, loadDetails]);
 
     const sortRef = useRef();
-        const statusRef = useRef();
-        const dataFilterSort = [
-            { Value: "lne_code DESC", Text: "Line Code [↓]" },
-            { Value: "lne_code ASC", Text: "Line Code [↑]" },
-            { Value: "mdl_code DESC", Text: "Model Code [↓]" },
-            { Value: "mdl_code ASC", Text: "Model Code [↑]" },
-        ];
-    
-        const dataFilterStatus = [
-            { Value: "1", Text: "Active" },
-            { Value: "0", Text: "Inactive" },
-        ];
-    
-        const [currentPage, setCurrentPage] = useState(1);
-        const [totalData, setTotalData] = useState(0);
-        const [pageSize, setPageSize] = useState(10);
-        const [search, setSearch] = useState("");
-        const [sortBy, setSortBy] = useState(dataFilterSort[0].Value);
-        const [sortStatus, setSortStatus] = useState(dataFilterStatus[0].Value);
+    const statusRef = useRef();
+    const dataFilterSort = [
+        { Value: "prt_code ASC", Text: "Part Code [↑]" },
+        { Value: "prt_code DESC", Text: "Part Code [↓]" },
+        { Value: "prt_name ASC", Text: "Part Name [↑]" },
+        { Value: "prt_name DESC", Text: "Part Name [↓]" },
+    ];
 
-        const loadData = useCallback(async (page, sort, cari, status) => {
+    const dataFilterStatus = [
+        { Value: "1", Text: "Active" },
+        { Value: "0", Text: "Inactive" },
+    ];
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalData, setTotalData] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState("");
+    const [sortBy, setSortBy] = useState(dataFilterSort[0].Value);
+    const [sortStatus, setSortStatus] = useState(dataFilterStatus[0].Value);
+
+    const loadData = useCallback(async (page, sort, cari, status) => {
         try{
             setLoading(true);
 
-            const response = await fetchData("models", 
+            const response = await fetchData("parts", 
                 {
                     Status: status,
                     ...(cari === "" ? {} : { Keyword: cari }),
                     Urut: sort,
                     PageNumber: page,
                     PageSize: pageSize,
-                    LineDetail: true,
-                    LineId: id,
+                    ModelDetail: true,
+                    ModelId: id,
                 },
                 "GET"
             );
@@ -102,37 +102,37 @@ export default function DetailLinePage(){
             const pagedData = data.map((item, index) => ({
                 No: (page - 1) * pageSize + index + 1,
                 id: item.Id,
-                Line: item.Line ?? "Not assigned yet",
-                Model: item.Code,
-                Status: item.Line ? "Active" : "Available",
-                Alignment: ["center", "center", "center", "center", "center"],
+                Code: item.Code,
+                Part: item.Name,
+                Status: item.Status,
+                Alignment: ["center", "center","center","center", "center"],
             }));
 
-            setDataModels(pagedData);
+            setDataParts(pagedData);
             setTotalData(totalData || 0);
             setCurrentPage(page);
-        } catch (err) {
+        }catch(err){
             Toast.error(err.message || "Failed to load data");
-            setDataModels([]);
+            setDataParts([]);
             setTotalData(0);
-        } finally {
+        }finally{
             setLoading(false);
         }
     }, [pageSize]);
 
     const initialSelectedIds = useMemo(() => {
-        return dataModels
-            .filter(item => item.Line !== "Not assigned yet")
+        return dataParts
+            .filter(item => item.Status === "Active")
             .map(item => item.id);
-    }, [dataModels]);
+    }, [dataParts]);
 
     useEffect(() => {
-        const initial = dataModels
-            .filter(item => item.Line !== "Not assigned yet")
+        const initial = dataParts
+            .filter(item => item.Status === "Active")
             .map(item => item.id);
 
         setInitialSelected(initial);
-    }, [dataModels]);
+    }, [dataParts]);
 
     const handleSearch = useCallback((query) => {
         setSearch(query);
@@ -162,49 +162,43 @@ export default function DetailLinePage(){
     }, [loadData, sortBy, search, sortStatus]);
 
     const handleSelection = useCallback((selectedIds) => {
-        setSelectedModels([...new Set(selectedIds)]);
+        setSelectedParts([...new Set(selectedIds)]);
     }, []);
 
-    const handleSubmit = useCallback(
-        async (e) => {
-            e.preventDefault();
+    const handleSubmit = useCallback(async (e) => {
+        e.preventDefault();
 
-            setLoading(true);
+        setLoading(true);
 
-            // yang baru dipilih (assign)
-            const toAssign = selectedModels.filter(
-                id => !initialSelected.includes(id)
+        const toAssign = selectedParts.filter(
+            id => !initialSelected.includes(id)
+        );
+
+        const toUnassign = initialSelected.filter(
+            id => !selectedParts.includes(id)
+        );
+
+        try {
+            const data = await fetchData(
+                "parts/assign-to-model",
+                {
+                    modelId: id,
+                    assignIds: toAssign,
+                    unassignIds: toUnassign,
+                },
+                "POST"
             );
 
-            // yang di-unselect (remove line)
-            const toUnassign = initialSelected.filter(
-                id => !selectedModels.includes(id)
-            );
-
-            console.log("Assign:", toAssign);
-            console.log("Unassign:", toUnassign);
-
-            try{
-                const data = await fetchData(
-                    "models/assign-to-line",
-                    {
-                        lineId: id,
-                        assignIds: toAssign,
-                        unassignIds: toUnassign,
-                    },
-                    "POST"
-                );
-
-                if (!data.error) {
-                    Toast.success("Model assignment updated successfully");
-                    router.push("/pages/line");
-                }
-            } catch (err) {
-                Toast.error(err.message || "Error updating model assignment");
-                setLoading(false);
+            if (!data.error) {
+                Toast.success("Part assignment updated successfully");
+                router.push("/pages/model");
             }
-        },  [selectedModels, initialSelected, id, router]
-    );
+        } catch (err) {
+            Toast.error(err.message || "Error updating part assignment");
+        } finally {
+            setLoading(false);
+        }
+    }, [selectedParts, initialSelected, id, router]);
 
     const filterContent = useMemo(
         () => (
@@ -236,15 +230,15 @@ export default function DetailLinePage(){
             <Breadcrumb
                 title={title}
                 items={[
-                    { label: "Lines Management", href: "/pages/line" },
-                    { label: "Detail Line" },
+                    { label: "Models Management", href: "/pages/model" },
+                    { label: "Detail Model" },
                 ]}
             />
             <div>
                 <Formsearch
                     onSearch={handleSearch}
                     onFilter={handleFilterApply}
-                    searchPlaceholder="Search model data"
+                    searchPlaceholder="Search part data"
                     showExportButton={false}
                     showAddButton={false}
                     filterContent={filterContent}
@@ -255,7 +249,7 @@ export default function DetailLinePage(){
                     <div className="card-body p-0">
                         <Table
                                 size="Small"
-                                data={dataModels}
+                                data={dataParts}
                                 initialSelectedIds={initialSelectedIds}
                                 enableCheckbox={true}
                                 onSelectionChange={handleSelection}

@@ -55,11 +55,10 @@ export default function LoginPage() {
             Authorize Login
           </p>
           <h5 className="fw-medium mb-1" style={{ fontSize: 18 }}>
-            Masuk ke Stock Part Dashboard
+            Access the Stock Part Dashboard
           </h5>
           <p className="text-secondary mb-0" style={{ fontSize: 13 }}>
-            Dashboard monitoring tetap public. Login khusus area operasional
-            yang membutuhkan otorisasi.
+            The monitoring dashboard remains public. Login is required for operational areas that need authorization.
           </p>
         </div>
 
@@ -151,7 +150,7 @@ export default function LoginPage() {
           className="text-center text-secondary mb-0 mt-3"
           style={{ fontSize: 12 }}
         >
-          Kembali ke{" "}
+          Back to{" "}
           <a
             href="/"
             className="text-decoration-none fw-medium"
