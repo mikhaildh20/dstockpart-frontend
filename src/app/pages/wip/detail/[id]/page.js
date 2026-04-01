@@ -16,7 +16,7 @@ export default function WipDetailPage() {
     const modelId = decryptIdUrl(path.id);
 
     const [loading, setLoading] = useState(false);
-    const [title, setTitle] = useState("WIP Detail");
+    const [title, setTitle] = useState("Work in Progress Detail");
     const [shiftInfo, setShiftInfo] = useState("");
     const [rows, setRows] = useState([]);
     const [shiftId, setShiftId] = useState(null);
@@ -54,7 +54,7 @@ export default function WipDetailPage() {
             if (response.error) throw new Error(response.message);
 
             const data = response.data || {};
-            setTitle(`WIP Detail - ${data.ModelCode || "N/A"}`);
+            setTitle(`Work in Progress Detail - ${data.ModelCode || "N/A"}`);
             setShiftInfo(`${data.ShiftCode || "-"} - ${data.ShiftName || "-"} (${data.ShiftStart || "-"} - ${data.ShiftEnd || "-"})`);
             setShiftId(data.ShiftId || null);
             setCanInput(data.CanInput !== false);
@@ -180,8 +180,8 @@ export default function WipDetailPage() {
             <Breadcrumb
                 title={title}
                 items={[
-                    { label: "WIP Management", href: "/pages/wip" },
-                    { label: "WIP Detail" },
+                    { label: "Work in Progress Management", href: "/pages/wip" },
+                    { label: "Work in Progress Detail" },
                 ]}
             />
 

@@ -122,7 +122,7 @@ export default function WipPage() {
     return (
         <>
             <Loading loading={loading} message="Loading data..." />
-            <Breadcrumb title="WIP Management" items={[]} />
+            <Breadcrumb title="Work in Progress Management" items={[]} />
             <div>
                 <Formsearch
                     onSearch={handleSearch}
