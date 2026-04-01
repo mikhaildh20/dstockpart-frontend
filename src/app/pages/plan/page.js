@@ -22,8 +22,6 @@ export default function PlanPage() {
     const dataFilterSort = [
         { Value: "created_at DESC", Text: "Created At [Newest]" },
         { Value: "created_at ASC", Text: "Created At [Oldest]" },
-        { Value: "model ASC", Text: "Model [A-Z]" },
-        { Value: "model DESC", Text: "Model [Z-A]" },
         { Value: "shift ASC", Text: "Shift [A-Z]" },
         { Value: "shift DESC", Text: "Shift [Z-A]" },
     ];
@@ -71,11 +69,8 @@ export default function PlanPage() {
                     id: item.Id,
                     "Plan Date": formatDate(item.PlanDate || item.CreatedAt),
                     Shift: `${item.ShiftCode} - ${item.ShiftName}`,
-                    Model: item.ModelCode,
-                    "Qty R": item.QtyR,
-                    "Qty L": item.QtyL,
                     Action: ["Edit"],
-                    Alignment: ["center", "center", "center", "center", "center", "center", "center"],
+                    Alignment: ["center", "center", "center", "center"],
                 }));
 
                 setDataPlans(mapped);
@@ -155,13 +150,13 @@ export default function PlanPage() {
     return (
         <>
             <Loading loading={loading} message="Loading data..." />
-            <Breadcrumb title="Plans Management" items={[]} />
+            <Breadcrumb title="Base Planning" items={[]} />
             <div>
                 <Formsearch
                     onSearch={handleSearch}
                     onAdd={handleAdd}
                     onFilter={handleFilterApply}
-                    searchPlaceholder="Search plan data"
+                    searchPlaceholder="Search shift data"
                     addButtonText="Add"
                     showExportButton={false}
                     filterContent={filterContent}

@@ -231,7 +231,7 @@ export default function DashboardPage() {
 
   const parts = Array.isArray(dashboardData?.Parts) ? dashboardData.Parts : [];
   const sections = Array.isArray(dashboardData?.Sections) ? dashboardData.Sections : [];
-  const planByPart = Array.isArray(dashboardData?.PlanByPart) ? dashboardData.PlanByPart : [];
+  const planSummary = dashboardData?.PlanSummary || { QtyR: 0, QtyL: 0, Total: 0 };
   const monthlyPlanRows = Array.isArray(dashboardData?.MonthlyPlan) ? dashboardData.MonthlyPlan : [];
   const monthlyActualRows = Array.isArray(dashboardData?.MonthlyActual) ? dashboardData.MonthlyActual : [];
   const partPlanMap = parts.reduce((acc, part) => {
@@ -276,22 +276,6 @@ export default function DashboardPage() {
     if (Number.isNaN(date.getTime())) return "";
     return date.toISOString().slice(0, 10);
   }, []);
-  const monthlyPlanGroups = useMemo(() => {
-    const grouped = [];
-    monthlyPlanRows.forEach((row) => {
-      const summaryDate = normalizeDateKey(row.SummaryDate);
-      let group = grouped.find((item) => item.date === summaryDate);
-      if (!group) {
-        group = {
-          date: summaryDate,
-          parts: [],
-        };
-        grouped.push(group);
-      }
-      group.parts.push(row);
-    });
-    return grouped;
-  }, [monthlyPlanRows, normalizeDateKey]);
   const monthlyActualGroups = useMemo(() => {
     const grouped = [];
     monthlyActualRows.forEach((row) => {
@@ -319,49 +303,31 @@ export default function DashboardPage() {
     );
   }, [modelSearch, models]);
   const selectedDayPlanSummary = useMemo(() => {
-    if (parts.length > 0) {
-      const summaryFromParts = parts.reduce(
-        (acc, part) => {
-          acc.r += Number(part.PlanR ?? 0);
-          acc.l += Number(part.PlanL ?? 0);
-          return acc;
-        },
-        { r: 0, l: 0 }
-      );
-
+    if (dashboardData?.PlanSummary) {
       return {
-        ...summaryFromParts,
-        total: summaryFromParts.r + summaryFromParts.l,
+        r: Number(dashboardData.PlanSummary.QtyR ?? 0),
+        l: Number(dashboardData.PlanSummary.QtyL ?? 0),
+        total: Number(dashboardData.PlanSummary.Total ?? 0),
       };
     }
 
     const activeDate = normalizeDateKey(dashboardData?.FilterDate || selectedDate);
-    const matchingRows = monthlyPlanRows.filter(
+    const matchingRow = monthlyPlanRows.find(
       (row) => normalizeDateKey(row.SummaryDate) === activeDate
     );
 
-    if (matchingRows.length === 0) {
+    if (!matchingRow) {
       return { r: 0, l: 0, total: 0 };
     }
 
-    const fallbackSummary = matchingRows.reduce(
-      (acc, part) => {
-        acc.r += Number(part.QtyR ?? 0);
-        acc.l += Number(part.QtyL ?? 0);
-        return acc;
-      },
-      { r: 0, l: 0 }
-    );
-
     return {
-      ...fallbackSummary,
-      total: fallbackSummary.r + fallbackSummary.l,
+      r: Number(matchingRow.QtyR ?? 0),
+      l: Number(matchingRow.QtyL ?? 0),
+      total: Number(matchingRow.QtyR ?? 0) + Number(matchingRow.QtyL ?? 0),
     };
-  }, [dashboardData?.FilterDate, monthlyPlanRows, normalizeDateKey, parts, selectedDate]);
+  }, [dashboardData?.FilterDate, dashboardData?.PlanSummary, monthlyPlanRows, normalizeDateKey, selectedDate]);
   const summary = parts.reduce(
     (acc, part) => {
-      acc.planR += Number(part.PlanR ?? 0);
-      acc.planL += Number(part.PlanL ?? 0);
       acc.currentR += Number(part.CurrentR ?? 0);
       acc.currentL += Number(part.CurrentL ?? 0);
       acc.finishR += Number(part.FinishR ?? 0);
@@ -369,8 +335,8 @@ export default function DashboardPage() {
       return acc;
     },
     {
-      planR: 0,
-      planL: 0,
+      planR: Number(selectedDayPlanSummary.r ?? 0),
+      planL: Number(selectedDayPlanSummary.l ?? 0),
       currentR: 0,
       currentL: 0,
       finishR: 0,
@@ -394,6 +360,12 @@ export default function DashboardPage() {
     },
     { r: null, l: null }
   );
+  const hasPlanR = Number(selectedDayPlanSummary.r ?? 0) > 0;
+  const hasPlanL = Number(selectedDayPlanSummary.l ?? 0) > 0;
+  const activeSides = [
+    ...(hasPlanR ? [{ key: "R", planKey: "planR", currentKey: "CurrentR", finishKey: "finishR", finishPartKey: "FinishR" }] : []),
+    ...(hasPlanL ? [{ key: "L", planKey: "planL", currentKey: "CurrentL", finishKey: "finishL", finishPartKey: "FinishL" }] : []),
+  ];
 
   return (
     <>
@@ -1178,26 +1150,28 @@ export default function DashboardPage() {
             <div className="stat-card plan plan-detail">
               <div className="stat-label">Plan</div>
               <div className="plan-breakdown-list">
-                {planByPart.map((part) => (
-                  <div key={`plan-breakdown-${part.MpdId}`} className="plan-breakdown-row">
-                    <div className="plan-breakdown-part">
-                      <div className="plan-breakdown-code">{part.PartCode}</div>
-                      <div className="plan-breakdown-name">{part.PartName}</div>
-                    </div>
+                <div className="plan-breakdown-row">
+                  <div className="plan-breakdown-part">
+                    <div className="plan-breakdown-code">Selected Model</div>
+                    <div className="plan-breakdown-name">Base planning applied uniformly to all parts</div>
+                  </div>
+                  {hasPlanR && (
                     <div className="plan-breakdown-metric">
                       <div className="plan-breakdown-metric-label">R</div>
-                      <div className="plan-breakdown-metric-value">{formatNumber(part.QtyR)}</div>
+                      <div className="plan-breakdown-metric-value">{formatNumber(planSummary.QtyR)}</div>
                     </div>
+                  )}
+                  {hasPlanL && (
                     <div className="plan-breakdown-metric">
                       <div className="plan-breakdown-metric-label">L</div>
-                      <div className="plan-breakdown-metric-value">{formatNumber(part.QtyL)}</div>
+                      <div className="plan-breakdown-metric-value">{formatNumber(planSummary.QtyL)}</div>
                     </div>
-                    <div className="plan-breakdown-metric">
-                      <div className="plan-breakdown-metric-label">Total</div>
-                      <div className="plan-breakdown-metric-value">{formatNumber(part.Total)}</div>
-                    </div>
+                  )}
+                  <div className="plan-breakdown-metric">
+                    <div className="plan-breakdown-metric-label">Total</div>
+                    <div className="plan-breakdown-metric-value">{formatNumber(planSummary.Total)}</div>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
@@ -1210,14 +1184,18 @@ export default function DashboardPage() {
                       <div className="plan-breakdown-code">{part.PartCode}</div>
                       <div className="plan-breakdown-name">{part.PartName}</div>
                     </div>
-                    <div className="plan-breakdown-metric">
-                      <div className="plan-breakdown-metric-label">R</div>
-                      <div className="plan-breakdown-metric-value">{formatNumber(part.FinishR ?? 0)}</div>
-                    </div>
-                    <div className="plan-breakdown-metric">
-                      <div className="plan-breakdown-metric-label">L</div>
-                      <div className="plan-breakdown-metric-value">{formatNumber(part.FinishL ?? 0)}</div>
-                    </div>
+                    {hasPlanR && (
+                      <div className="plan-breakdown-metric">
+                        <div className="plan-breakdown-metric-label">R</div>
+                        <div className="plan-breakdown-metric-value">{formatNumber(part.FinishR ?? 0)}</div>
+                      </div>
+                    )}
+                    {hasPlanL && (
+                      <div className="plan-breakdown-metric">
+                        <div className="plan-breakdown-metric-label">L</div>
+                        <div className="plan-breakdown-metric-value">{formatNumber(part.FinishL ?? 0)}</div>
+                      </div>
+                    )}
                     <div className="plan-breakdown-metric">
                       <div className="plan-breakdown-metric-label">Total</div>
                       <div className="plan-breakdown-metric-value">
@@ -1266,7 +1244,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="matrix-subtitle">
-                  {partGroups.length} part group{partGroups.length === 1 ? "" : "s"} • {sections.length} section{sections.length === 1 ? "" : "s"}
+                  {partGroups.length} part group{partGroups.length === 1 ? "" : "s"} | {sections.length} section{sections.length === 1 ? "" : "s"}
                 </div>
               </div>
 
@@ -1292,7 +1270,9 @@ export default function DashboardPage() {
                     <thead>
                       <tr>
                         <th rowSpan={2} className="sticky-col">Metric</th>
-                        <th rowSpan={2} className="text-center sticky-col side">Side</th>
+                        {activeSides.length > 1 && (
+                          <th rowSpan={2} className="text-center sticky-col side">Side</th>
+                        )}
                         {partGroups.length === 0 ? (
                           <th className="text-center group-head">No Part</th>
                         ) : (
@@ -1327,122 +1307,93 @@ export default function DashboardPage() {
                     <tbody>
                       {sections.length === 0 ? (
                         <tr>
-                          <td colSpan={partGroups.length ? partGroups.reduce((sum, part) => sum + part.sections.length, 0) + 2 : 3} className="text-center text-secondary">
+                          <td colSpan={partGroups.length ? partGroups.reduce((sum, part) => sum + part.sections.length, 0) + (activeSides.length > 1 ? 2 : 1) : (activeSides.length > 1 ? 3 : 2)} className="text-center text-secondary">
                             No section stock data.
                           </td>
                         </tr>
                       ) : (
                         <>
-                          <tr className="row-plan">
-                            <td rowSpan={2} className="metric-label sticky-col">Plan</td>
-                            <td className="text-center side-label-cell sticky-col side">R</td>
-                            {partGroups.flatMap((part) =>
-                              part.sections.map((section) => (
+                          {activeSides.map((side, index) => (
+                            <tr key={`plan-${side.key}`} className="row-plan">
+                              {index === 0 && (
+                                <td rowSpan={activeSides.length} className="metric-label sticky-col">Plan</td>
+                              )}
+                              {activeSides.length > 1 && (
+                                <td className="text-center side-label-cell sticky-col side">{side.key}</td>
+                              )}
+                              {partGroups.flatMap((part) =>
+                                part.sections.map((section) => (
+                                  <td
+                                    key={`plan-${side.key}-${section.MpsdId}`}
+                                    className={`value-cell ${(partPlanMap[part.mpdId]?.[side.planKey] ?? 0) === 0 ? "zero" : ""}`}
+                                  >
+                                    {formatNumber(partPlanMap[part.mpdId]?.[side.planKey] ?? 0)}
+                                  </td>
+                                ))
+                              )}
+                            </tr>
+                          ))}
+                          {activeSides.map((side, index) => (
+                            <tr key={`current-${side.key}`} className="row-current">
+                              {index === 0 && (
+                                <td rowSpan={activeSides.length} className="metric-label sticky-col">Current</td>
+                              )}
+                              {activeSides.length > 1 && (
+                                <td className="text-center side-label-cell sticky-col side">{side.key}</td>
+                              )}
+                              {partGroups.flatMap((part) =>
+                                part.sections.map((section) => (
+                                  <td
+                                    key={`current-${side.key}-${section.MpsdId}`}
+                                    className={`value-cell status-cell status-${getStatusTone(
+                                      section[side.currentKey],
+                                      partPlanMap[part.mpdId]?.[side.planKey] ?? 0
+                                    )}`}
+                                  >
+                                    {formatNumber(section[side.currentKey])}
+                                  </td>
+                                ))
+                              )}
+                            </tr>
+                          ))}
+                          {activeSides.map((side, index) => (
+                            <tr key={`finish-${side.key}`} className="row-finish">
+                              {index === 0 && (
+                                <td rowSpan={activeSides.length} className="metric-label sticky-col">Result</td>
+                              )}
+                              {activeSides.length > 1 && (
+                                <td className="text-center side-label-cell sticky-col side">{side.key}</td>
+                              )}
+                              {partGroups.map((part) => (
                                 <td
-                                  key={`plan-r-${section.MpsdId}`}
-                                  className={`value-cell ${(partPlanMap[part.mpdId]?.planR ?? 0) === 0 ? "zero" : ""}`}
-                                >
-                                  {formatNumber(partPlanMap[part.mpdId]?.planR ?? 0)}
-                                </td>
-                              ))
-                            )}
-                          </tr>
-                          <tr className="row-plan">
-                            <td className="text-center side-label-cell sticky-col side">L</td>
-                            {partGroups.flatMap((part) =>
-                              part.sections.map((section) => (
-                                <td
-                                  key={`plan-l-${section.MpsdId}`}
-                                  className={`value-cell ${(partPlanMap[part.mpdId]?.planL ?? 0) === 0 ? "zero" : ""}`}
-                                >
-                                  {formatNumber(partPlanMap[part.mpdId]?.planL ?? 0)}
-                                </td>
-                              ))
-                            )}
-                          </tr>
-                          <tr className="row-current">
-                            <td rowSpan={2} className="metric-label sticky-col">Current</td>
-                            <td className="text-center side-label-cell sticky-col side">R</td>
-                            {partGroups.flatMap((part) =>
-                              part.sections.map((section) => (
-                                <td
-                                  key={`current-r-${section.MpsdId}`}
+                                  key={`finish-${side.key}-${part.mpdId}`}
+                                  colSpan={part.sections.length}
                                   className={`value-cell status-cell status-${getStatusTone(
-                                    section.CurrentR,
-                                    partPlanMap[part.mpdId]?.planR ?? 0
+                                    partPlanMap[part.mpdId]?.[side.finishKey] ?? 0,
+                                    partPlanMap[part.mpdId]?.[side.planKey] ?? 0
                                   )}`}
                                 >
-                                  {formatNumber(section.CurrentR)}
+                                  {formatNumber(partPlanMap[part.mpdId]?.[side.finishKey] ?? 0)}
                                 </td>
-                              ))
-                            )}
-                          </tr>
-                          <tr className="row-current">
-                            <td className="text-center side-label-cell sticky-col side">L</td>
-                            {partGroups.flatMap((part) =>
-                              part.sections.map((section) => (
-                                <td
-                                  key={`current-l-${section.MpsdId}`}
-                                  className={`value-cell status-cell status-${getStatusTone(
-                                    section.CurrentL,
-                                    partPlanMap[part.mpdId]?.planL ?? 0
-                                  )}`}
-                                >
-                                  {formatNumber(section.CurrentL)}
-                                </td>
-                              ))
-                            )}
-                          </tr>
-                          <tr className="row-finish">
-                            <td rowSpan={2} className="metric-label sticky-col">Result</td>
-                            <td className="text-center side-label-cell sticky-col side">R</td>
-                            {partGroups.map((part) => (
+                              ))}
+                            </tr>
+                          ))}
+                          {activeSides.map((side, index) => (
+                            <tr key={`uncomplete-${side.key}`} className="row-uncomplete">
+                              {index === 0 && (
+                                <td rowSpan={activeSides.length} className="metric-label sticky-col">Part Uncomplete</td>
+                              )}
+                              {activeSides.length > 1 && (
+                                <td className="text-center side-label-cell sticky-col side">{side.key}</td>
+                              )}
                               <td
-                                key={`finish-r-${part.mpdId}`}
-                                colSpan={part.sections.length}
-                                className={`value-cell status-cell status-${getStatusTone(
-                                  partPlanMap[part.mpdId]?.finishR ?? 0,
-                                  partPlanMap[part.mpdId]?.planR ?? 0
-                                )}`}
+                                colSpan={partGroups.reduce((sum, part) => sum + part.sections.length, 0)}
+                                className="value-cell"
                               >
-                                {formatNumber(partPlanMap[part.mpdId]?.finishR ?? 0)}
+                                {formatNumber(minResult[side.key.toLowerCase()] ?? 0)}
                               </td>
-                            ))}
-                          </tr>
-                          <tr className="row-finish">
-                            <td className="text-center side-label-cell sticky-col side">L</td>
-                            {partGroups.map((part) => (
-                              <td
-                                key={`finish-l-${part.mpdId}`}
-                                colSpan={part.sections.length}
-                                className={`value-cell status-cell status-${getStatusTone(
-                                  partPlanMap[part.mpdId]?.finishL ?? 0,
-                                  partPlanMap[part.mpdId]?.planL ?? 0
-                                )}`}
-                              >
-                                {formatNumber(partPlanMap[part.mpdId]?.finishL ?? 0)}
-                              </td>
-                            ))}
-                          </tr>
-                          <tr className="row-uncomplete">
-                            <td rowSpan={2} className="metric-label sticky-col">Part Complete</td>
-                            <td className="text-center side-label-cell sticky-col side">R</td>
-                            <td
-                              colSpan={partGroups.reduce((sum, part) => sum + part.sections.length, 0)}
-                              className="value-cell"
-                            >
-                              {formatNumber(minResult.r ?? 0)}
-                            </td>
-                          </tr>
-                          <tr className="row-uncomplete">
-                            <td className="text-center side-label-cell sticky-col side">L</td>
-                            <td
-                              colSpan={partGroups.reduce((sum, part) => sum + part.sections.length, 0)}
-                              className="value-cell"
-                            >
-                              {formatNumber(minResult.l ?? 0)}
-                            </td>
-                          </tr>
+                            </tr>
+                          ))}
                         </>
                       )}
                     </tbody>
@@ -1467,66 +1418,48 @@ export default function DashboardPage() {
                             <thead>
                               <tr>
                                 <th>Section</th>
-                                <th className="text-center">Side</th>
+                                {activeSides.length > 1 && <th className="text-center">Side</th>}
                                 <th className="text-center">Plan</th>
                                 <th className="text-center">Current</th>
                                 <th className="text-center">Result</th>
-                                <th className="text-center">Part Complete</th>
+                                <th className="text-center">Part Uncomplete</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {part.sections.flatMap((section, index) => ([
-                                <tr key={`compact-${section.MpsdId}-R`}>
-                                  <td rowSpan={2}>
-                                    {section.SectionCode} - {section.SectionName}
-                                    <div style={{ fontSize: 10, color: "#718176" }}>
-                                      Seq {section.Sequence}
-                                    </div>
-                                  </td>
-                                  <td className="text-center">R</td>
-                                  <td className="text-center">{formatNumber(partPlanMap[part.mpdId]?.planR ?? 0)}</td>
-                                  <td className={`text-center status-${getStatusTone(
-                                    section.CurrentR,
-                                    partPlanMap[part.mpdId]?.planR ?? 0
-                                  )}`}>{formatNumber(section.CurrentR)}</td>
-                                  <td className={`text-center ${index === part.sections.length - 1
-                                    ? `status-${getStatusTone(
-                                        partPlanMap[part.mpdId]?.finishR ?? 0,
-                                        partPlanMap[part.mpdId]?.planR ?? 0
-                                      )}`
-                                    : ""}`}>
-                                    {index === part.sections.length - 1 ? formatNumber(partPlanMap[part.mpdId]?.finishR ?? 0) : "-"}
-                                  </td>
-                                  <td className={`text-center ${index === 0 ? `status-${getStatusTone(
-                                    minResult.r ?? 0,
-                                    summary.planR
-                                  )}` : ""}`}>
-                                    {index === 0 ? formatNumber(minResult.r ?? 0) : "-"}
-                                  </td>
-                                </tr>,
-                                <tr key={`compact-${section.MpsdId}-L`}>
-                                  <td className="text-center">L</td>
-                                  <td className="text-center">{formatNumber(partPlanMap[part.mpdId]?.planL ?? 0)}</td>
-                                  <td className={`text-center status-${getStatusTone(
-                                    section.CurrentL,
-                                    partPlanMap[part.mpdId]?.planL ?? 0
-                                  )}`}>{formatNumber(section.CurrentL)}</td>
-                                  <td className={`text-center ${index === part.sections.length - 1
-                                    ? `status-${getStatusTone(
-                                        partPlanMap[part.mpdId]?.finishL ?? 0,
-                                        partPlanMap[part.mpdId]?.planL ?? 0
-                                      )}`
-                                    : ""}`}>
-                                    {index === part.sections.length - 1 ? formatNumber(partPlanMap[part.mpdId]?.finishL ?? 0) : "-"}
-                                  </td>
-                                  <td className={`text-center ${index === 0 ? `status-${getStatusTone(
-                                    minResult.l ?? 0,
-                                    summary.planL
-                                  )}` : ""}`}>
-                                    {index === 0 ? formatNumber(minResult.l ?? 0) : "-"}
-                                  </td>
-                                </tr>,
-                              ]))}
+                              {part.sections.flatMap((section, index) =>
+                                activeSides.map((side, sideIndex) => (
+                                  <tr key={`compact-${section.MpsdId}-${side.key}`}>
+                                    {sideIndex === 0 && (
+                                      <td rowSpan={activeSides.length}>
+                                        {section.SectionCode} - {section.SectionName}
+                                        <div style={{ fontSize: 10, color: "#718176" }}>
+                                          Seq {section.Sequence}
+                                        </div>
+                                      </td>
+                                    )}
+                                    {activeSides.length > 1 && <td className="text-center">{side.key}</td>}
+                                    <td className="text-center">{formatNumber(partPlanMap[part.mpdId]?.[side.planKey] ?? 0)}</td>
+                                    <td className={`text-center status-${getStatusTone(
+                                      section[side.currentKey],
+                                      partPlanMap[part.mpdId]?.[side.planKey] ?? 0
+                                    )}`}>{formatNumber(section[side.currentKey])}</td>
+                                    <td className={`text-center ${index === part.sections.length - 1
+                                      ? `status-${getStatusTone(
+                                          partPlanMap[part.mpdId]?.[side.finishKey] ?? 0,
+                                          partPlanMap[part.mpdId]?.[side.planKey] ?? 0
+                                        )}`
+                                      : ""}`}>
+                                      {index === part.sections.length - 1 ? formatNumber(partPlanMap[part.mpdId]?.[side.finishKey] ?? 0) : "-"}
+                                    </td>
+                                    <td className={`text-center ${index === 0 ? `status-${getStatusTone(
+                                      minResult[side.key.toLowerCase()] ?? 0,
+                                      summary[side.planKey]
+                                    )}` : ""}`}>
+                                      {index === 0 ? formatNumber(minResult[side.key.toLowerCase()] ?? 0) : "-"}
+                                    </td>
+                                  </tr>
+                                ))
+                              )}
                             </tbody>
                           </table>
                         </div>
@@ -1544,7 +1477,7 @@ export default function DashboardPage() {
                     <div>
                       <div className="matrix-title">Monthly Plan Summary</div>
                       <div className="matrix-subtitle">
-                        Daily plan summary by part for {selectedMonth} based on the selected shift.
+                        Daily model plan summary for {selectedMonth} based on the selected shift.
                       </div>
                     </div>
                   </div>
@@ -1553,57 +1486,44 @@ export default function DashboardPage() {
                       <thead>
                         <tr>
                           <th>Metric</th>
-                          {monthlyPlanGroups.map((group) => (
+                          {monthlyPlanRows.map((row) => (
                             <th
-                              key={`plan-head-${group.date}`}
+                              key={`plan-head-${row.SummaryDate}`}
                               className="text-center"
-                              colSpan={group.parts.length}
                             >
-                              {formatShortDate(group.date)}
+                              {formatShortDate(row.SummaryDate)}
                             </th>
                           ))}
                         </tr>
-                        <tr>
-                          <th>Part</th>
-                          {monthlyPlanGroups.flatMap((group) =>
-                            group.parts.map((part) => (
-                              <th key={`plan-part-${group.date}-${part.MpdId}`} className="text-center">
-                                {part.PartCode}
-                              </th>
-                            ))
-                          )}
-                        </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td className="fw-semibold">Plan R</td>
-                          {monthlyPlanGroups.flatMap((group) =>
-                            group.parts.map((part) => (
-                            <td key={`plan-r-${group.date}-${part.MpdId}`} className="text-center">
-                              {formatNumber(part.QtyR)}
-                            </td>
-                            ))
-                          )}
-                        </tr>
-                        <tr>
-                          <td className="fw-semibold">Plan L</td>
-                          {monthlyPlanGroups.flatMap((group) =>
-                            group.parts.map((part) => (
-                            <td key={`plan-l-${group.date}-${part.MpdId}`} className="text-center">
-                              {formatNumber(part.QtyL)}
-                            </td>
-                            ))
-                          )}
-                        </tr>
+                        {hasPlanR && (
+                          <tr>
+                            <td className="fw-semibold">{activeSides.length === 1 ? "Plan" : "Plan R"}</td>
+                            {monthlyPlanRows.map((row) => (
+                              <td key={`plan-r-${row.SummaryDate}`} className="text-center">
+                                {formatNumber(row.QtyR)}
+                              </td>
+                            ))}
+                          </tr>
+                        )}
+                        {hasPlanL && (
+                          <tr>
+                            <td className="fw-semibold">{activeSides.length === 1 ? "Plan" : "Plan L"}</td>
+                            {monthlyPlanRows.map((row) => (
+                              <td key={`plan-l-${row.SummaryDate}`} className="text-center">
+                                {formatNumber(row.QtyL)}
+                              </td>
+                            ))}
+                          </tr>
+                        )}
                         <tr>
                           <td className="fw-semibold">Total</td>
-                          {monthlyPlanGroups.flatMap((group) =>
-                            group.parts.map((part) => (
-                            <td key={`plan-total-${group.date}-${part.MpdId}`} className="text-center">
-                              {formatNumber(Number(part.QtyR || 0) + Number(part.QtyL || 0))}
+                          {monthlyPlanRows.map((row) => (
+                            <td key={`plan-total-${row.SummaryDate}`} className="text-center">
+                              {formatNumber(Number(row.QtyR || 0) + Number(row.QtyL || 0))}
                             </td>
-                            ))
-                          )}
+                          ))}
                         </tr>
                       </tbody>
                     </table>
@@ -1648,26 +1568,30 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td className="fw-semibold">Actual R</td>
-                          {monthlyActualGroups.flatMap((group) =>
-                            group.parts.map((part) => (
-                            <td key={`actual-r-${group.date}-${part.MpdId}`} className="text-center">
-                              {formatNumber(part.QtyR)}
-                            </td>
-                            ))
-                          )}
-                        </tr>
-                        <tr>
-                          <td className="fw-semibold">Actual L</td>
-                          {monthlyActualGroups.flatMap((group) =>
-                            group.parts.map((part) => (
-                            <td key={`actual-l-${group.date}-${part.MpdId}`} className="text-center">
-                              {formatNumber(part.QtyL)}
-                            </td>
-                            ))
-                          )}
-                        </tr>
+                        {hasPlanR && (
+                          <tr>
+                            <td className="fw-semibold">{activeSides.length === 1 ? "Actual" : "Actual R"}</td>
+                            {monthlyActualGroups.flatMap((group) =>
+                              group.parts.map((part) => (
+                              <td key={`actual-r-${group.date}-${part.MpdId}`} className="text-center">
+                                {formatNumber(part.QtyR)}
+                              </td>
+                              ))
+                            )}
+                          </tr>
+                        )}
+                        {hasPlanL && (
+                          <tr>
+                            <td className="fw-semibold">{activeSides.length === 1 ? "Actual" : "Actual L"}</td>
+                            {monthlyActualGroups.flatMap((group) =>
+                              group.parts.map((part) => (
+                              <td key={`actual-l-${group.date}-${part.MpdId}`} className="text-center">
+                                {formatNumber(part.QtyL)}
+                              </td>
+                              ))
+                            )}
+                          </tr>
+                        )}
                         <tr>
                           <td className="fw-semibold">Total</td>
                           {monthlyActualGroups.flatMap((group) =>

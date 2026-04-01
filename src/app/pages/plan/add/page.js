@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import DropDown from "@/component/common/Dropdown";
+import Input from "@/component/common/Input";
 import Button from "@/component/common/Button";
 import Toast from "@/component/common/Toast";
 import SweetAlert from "@/component/common/SweetAlert";
@@ -13,36 +13,34 @@ import fetchData from "@/lib/fetch";
 export default function AddPlanPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [models, setModels] = useState([]);
     const [currentShift, setCurrentShift] = useState(null);
     const [errors, setErrors] = useState({});
-    const [formData, setFormData] = useState({
-        modelId: "",
-    });
     const [partPlans, setPartPlans] = useState([]);
-
-    const modelOptions = useMemo(
-        () => models.map((item) => ({ Value: item.Id, Text: item.Code })),
-        [models]
-    );
 
     const loadInitialData = useCallback(async () => {
         try {
             setLoading(true);
 
-            const [modelsRes, shiftRes] = await Promise.all([
-                fetchData("plans/models", {}, "GET"),
+            const [itemsRes, shiftRes] = await Promise.all([
+                fetchData("plans/base-items", {}, "GET"),
                 fetchData("plans/current-shift", {}, "GET"),
             ]);
 
-            if (modelsRes.error) {
-                throw new Error(modelsRes.message);
+            if (itemsRes.error) {
+                throw new Error(itemsRes.message);
             }
             if (shiftRes.error) {
                 throw new Error(shiftRes.message);
             }
 
-            setModels(Array.isArray(modelsRes.data) ? modelsRes.data : []);
+            const mapped = (Array.isArray(itemsRes.data) ? itemsRes.data : []).map((item) => ({
+                modelId: item.ModelId,
+                modelCode: item.ModelCode,
+                qtyR: "",
+                qtyL: "",
+            }));
+
+            setPartPlans(mapped);
             setCurrentShift(shiftRes.data || null);
         } catch (err) {
             Toast.error(err.message || "Failed to load form data");
@@ -56,41 +54,6 @@ export default function AddPlanPage() {
         loadInitialData();
     }, [loadInitialData]);
 
-    const loadPartsByModel = useCallback(async (modelId) => {
-        const response = await fetchData(`plans/parts-by-model/${modelId}`, {}, "GET");
-        if (response.error) {
-            throw new Error(response.message);
-        }
-
-        const mapped = (Array.isArray(response.data) ? response.data : []).map((item) => ({
-            mpdId: item.MpdId,
-            partCode: item.PartCode,
-            partName: item.PartName,
-            qtyR: "",
-            qtyL: "",
-        }));
-        setPartPlans(mapped);
-    }, []);
-
-    const handleFormChange = useCallback(async (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-
-        if (name === "modelId") {
-            setPartPlans([]);
-            if (!value) return;
-            try {
-                await loadPartsByModel(value);
-            } catch (err) {
-                Toast.error(err.message || "Failed to load parts");
-            }
-        }
-    }, [errors, loadPartsByModel]);
-
     const handlePlanQtyChange = useCallback((index, field, value) => {
         setPartPlans((prev) =>
             prev.map((item, idx) =>
@@ -101,24 +64,23 @@ export default function AddPlanPage() {
 
     const validateForm = useCallback(() => {
         const newErrors = {};
-        if (!formData.modelId) newErrors.modelId = "Model is required.";
 
         const validRows = partPlans.filter(
             (item) => item.qtyR !== "" || item.qtyL !== ""
         );
         if (validRows.length === 0) {
-            newErrors.partPlans = "Please fill at least one part plan.";
+            newErrors.partPlans = "Please fill at least one base planning row.";
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [formData, partPlans]);
+    }, [partPlans]);
 
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
 
         if (!validateForm()) {
-            Toast.error("Please fill in all required fields.");
+            Toast.error("Please fill in at least one base planning row.");
             return;
         }
 
@@ -130,7 +92,7 @@ export default function AddPlanPage() {
         const items = partPlans
             .filter((item) => item.qtyR !== "" || item.qtyL !== "")
             .map((item) => ({
-                mpdId: Number(item.mpdId),
+                modelId: Number(item.modelId),
                 qtyR: Number(item.qtyR || 0),
                 qtyL: Number(item.qtyL || 0),
             }));
@@ -150,13 +112,13 @@ export default function AddPlanPage() {
                 throw new Error(response.message);
             }
 
-            Toast.success(response.message || "Plans created successfully.");
+            Toast.success(response.message || "Base planning created successfully.");
             router.push("/pages/plan");
         } catch (err) {
-            const message = err.message || "Failed to create plans";
+            const message = err.message || "Failed to create base planning";
             if (message.includes("already been created today")) {
                 SweetAlert({
-                    title: "Plan Already Exists",
+                    title: "Base Planning Already Exists",
                     text: message,
                     icon: "warning",
                 });
@@ -175,11 +137,31 @@ export default function AddPlanPage() {
     return (
         <>
             <Loading loading={loading} message="Loading data..." />
+            <style jsx>{`
+                .planning-table-shell {
+                    max-height: min(62vh, 640px);
+                    overflow: auto;
+                    border: 1px solid #dee2e6;
+                    border-radius: 0.5rem;
+                }
+
+                .planning-table {
+                    margin-bottom: 0;
+                }
+
+                .planning-table thead th {
+                    position: sticky;
+                    top: 0;
+                    z-index: 2;
+                    background: #f8fbff;
+                    box-shadow: inset 0 -1px 0 #dee2e6;
+                }
+            `}</style>
             <Breadcrumb
-                title="Add Plan"
+                title="Add Base Planning"
                 items={[
-                    { label: "Plans Management", href: "/pages/plan" },
-                    { label: "Add Plan" },
+                    { label: "Base Planning", href: "/pages/plan" },
+                    { label: "Add Base Planning" },
                 ]}
             />
             <div className="card border-0 shadow-sm">
@@ -187,34 +169,30 @@ export default function AddPlanPage() {
                     <form onSubmit={handleSubmit}>
                         <div className="row">
                             <div className="col-lg-4">
-                                <DropDown
-                                    arrData={modelOptions}
-                                    type="choose"
-                                    label="Model"
-                                    forInput="modelId"
-                                    value={formData.modelId}
-                                    onChange={handleFormChange}
-                                    errorMessage={errors.modelId}
-                                    isRequired={true}
+                                <Input
+                                    label="Current Shift"
+                                    name="currentShift"
+                                    id="currentShift"
+                                    value={currentShift ? `${currentShift.Code} - ${currentShift.Name}` : "-"}
+                                    onChange={() => {}}
+                                    readOnly={true}
+                                    helperText={currentShift ? `${currentShift.StartTime} - ${currentShift.EndTime}` : ""}
                                 />
                             </div>
-                            <div className="col-lg-4">
-                                <label className="form-label" style={{ fontSize: 12, fontWeight: 500 }}>
-                                    Current Shift
-                                </label>
-                                <div className="form-control" style={{ fontSize: 13, height: 38 }}>
-                                    {currentShift ? `${currentShift.Code} - ${currentShift.Name}` : "-"}
-                                </div>
-                            </div>
+                        </div>
+                        <div className="alert alert-info py-2 px-3 mb-3" style={{ fontSize: 13 }}>
+                            Fill only the active side required by each model. If a model uses a single side,
+                            enter quantity for that side only and leave the unused side as <strong>0</strong>.
+                            WIP input and dashboard side visibility will follow the saved daily plan.
                         </div>
 
                         <div className="mt-2">
-                            <div className="table-responsive">
-                                <table className="table table-sm table-bordered align-middle">
+                            <div className="planning-table-shell">
+                                <table className="table table-sm table-bordered align-middle planning-table">
                                     <thead>
                                         <tr>
                                             <th className="text-center">No</th>
-                                            <th>Part</th>
+                                            <th>Model</th>
                                             <th className="text-center">Qty R</th>
                                             <th className="text-center">Qty L</th>
                                         </tr>
@@ -223,17 +201,18 @@ export default function AddPlanPage() {
                                         {partPlans.length === 0 ? (
                                             <tr>
                                                 <td colSpan={4} className="text-center text-secondary">
-                                                    Select a model to load parts.
+                                                    No base planning items available.
                                                 </td>
                                             </tr>
                                         ) : (
                                             partPlans.map((item, index) => (
-                                                <tr key={item.mpdId}>
+                                                <tr key={item.modelId}>
                                                     <td className="text-center">{index + 1}</td>
-                                                    <td>{item.partCode} - {item.partName}</td>
+                                                    <td>{item.modelCode}</td>
                                                     <td>
                                                         <input
                                                             type="number"
+                                                            min="0"
                                                             className="form-control form-control-sm"
                                                             value={item.qtyR}
                                                             onChange={(e) => handlePlanQtyChange(index, "qtyR", e.target.value)}
@@ -242,6 +221,7 @@ export default function AddPlanPage() {
                                                     <td>
                                                         <input
                                                             type="number"
+                                                            min="0"
                                                             className="form-control form-control-sm"
                                                             value={item.qtyL}
                                                             onChange={(e) => handlePlanQtyChange(index, "qtyL", e.target.value)}

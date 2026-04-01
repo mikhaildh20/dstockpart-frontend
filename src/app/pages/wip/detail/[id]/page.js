@@ -33,6 +33,12 @@ export default function WipDetailPage() {
         acc[key].push(row);
         return acc;
     }, {});
+    const hasPlanR = rows.some((row) => Number(row.planR ?? 0) > 0);
+    const hasPlanL = rows.some((row) => Number(row.planL ?? 0) > 0);
+    const visibleSides = [
+        ...(hasPlanR ? [{ key: "R", field: "qtyR", planField: "planR", label: "Current R" }] : []),
+        ...(hasPlanL ? [{ key: "L", field: "qtyL", planField: "planL", label: "Current L" }] : []),
+    ];
 
     const formatDateTime = useCallback((value) => {
         if (!value) return "-";
@@ -61,8 +67,10 @@ export default function WipDetailPage() {
                 sectionCode: item.SectionCode,
                 sectionName: item.SectionName,
                 sequence: item.Sequence,
-                qtyR: item.QtyR ?? 0,
-                qtyL: item.QtyL ?? 0,
+                planR: Number(item.PlanR ?? 0),
+                planL: Number(item.PlanL ?? 0),
+                qtyR: Number(item.PlanR ?? 0) === 0 ? 0 : (item.QtyR ?? 0),
+                qtyL: Number(item.PlanL ?? 0) === 0 ? 0 : (item.QtyL ?? 0),
             }));
 
             setRows(mapped);
@@ -124,8 +132,8 @@ export default function WipDetailPage() {
 
             const items = rows.map((row) => ({
                 mpsdId: Number(row.mpsdId),
-                qtyR: Number(row.qtyR || 0),
-                qtyL: Number(row.qtyL || 0),
+                qtyR: Number(row.planR ?? 0) === 0 ? 0 : Number(row.qtyR || 0),
+                qtyL: Number(row.planL ?? 0) === 0 ? 0 : Number(row.qtyL || 0),
             }));
 
             const response = await fetchData(
@@ -202,14 +210,15 @@ export default function WipDetailPage() {
                                         <th>Part</th>
                                         <th>Section</th>
                                         <th className="text-center">Seq</th>
-                                        <th className="text-center">Current R</th>
-                                        <th className="text-center">Current L</th>
+                                        {visibleSides.map((side) => (
+                                            <th key={side.key} className="text-center">{side.label}</th>
+                                        ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {rows.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="text-center text-secondary">
+                                            <td colSpan={4 + visibleSides.length} className="text-center text-secondary">
                                                 {missingSectionParts.length > 0
                                                     ? "No section data available because the model parts have not been assigned section sequence yet."
                                                     : "No section data available for this model."}
@@ -233,24 +242,17 @@ export default function WipDetailPage() {
                                                         )}
                                                         <td>{row.sectionCode} - {row.sectionName}</td>
                                                         <td className="text-center">{row.sequence}</td>
-                                                        <td>
-                                                            <input
-                                                                type="number"
-                                                                className="form-control form-control-sm"
-                                                                value={row.qtyR}
-                                                                onChange={(e) => handleQtyChange(absoluteIndex, "qtyR", e.target.value)}
-                                                                disabled={!canInput}
-                                                            />
-                                                        </td>
-                                                        <td>
-                                                            <input
-                                                                type="number"
-                                                                className="form-control form-control-sm"
-                                                                value={row.qtyL}
-                                                                onChange={(e) => handleQtyChange(absoluteIndex, "qtyL", e.target.value)}
-                                                                disabled={!canInput}
-                                                            />
-                                                        </td>
+                                                        {visibleSides.map((side) => (
+                                                            <td key={`${row.mpsdId}-${side.key}`}>
+                                                                <input
+                                                                    type="number"
+                                                                    className="form-control form-control-sm"
+                                                                    value={row[side.field]}
+                                                                    onChange={(e) => handleQtyChange(absoluteIndex, side.field, e.target.value)}
+                                                                    disabled={!canInput || Number(row[side.planField] ?? 0) === 0}
+                                                                />
+                                                            </td>
+                                                        ))}
                                                     </tr>
                                                 );
                                             })

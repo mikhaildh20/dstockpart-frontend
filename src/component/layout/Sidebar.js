@@ -40,7 +40,7 @@ export default function Sidebar({
     { href: "/pages/model", label: "Model", icon: "bi-box" },
     { href: "/pages/part", label: "Part", icon: "bi-gear" },
     { href: "/pages/section", label: "Section", icon: "bi-layout-split" },
-    { href: "/pages/plan", label: "Plan", icon: "bi-calendar-check" },
+    { href: "/pages/plan", label: "Base Planning", icon: "bi-calendar-check" },
     { href: "/pages/wip", label: "Work in Progress", icon: "bi-clipboard-data" },
   ];
 
