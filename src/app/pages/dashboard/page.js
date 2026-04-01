@@ -973,6 +973,26 @@ export default function DashboardPage() {
           width: 100%;
           overflow-x: auto;
           overflow-y: hidden;
+          scrollbar-width: thin;
+          scrollbar-color: #b8cbe1 #edf4fb;
+        }
+
+        .summary-scroll::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        .summary-scroll::-webkit-scrollbar-track {
+          background: #edf4fb;
+          border-radius: 999px;
+        }
+
+        .summary-scroll::-webkit-scrollbar-thumb {
+          background: linear-gradient(90deg, #b4c9df, #8fb0d1);
+          border-radius: 999px;
+        }
+
+        .summary-scroll::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(90deg, #9db9d5, #7fa4ca);
         }
 
         .summary-wide-table {
@@ -1381,7 +1401,7 @@ export default function DashboardPage() {
                           {activeSides.map((side, index) => (
                             <tr key={`uncomplete-${side.key}`} className="row-uncomplete">
                               {index === 0 && (
-                                <td rowSpan={activeSides.length} className="metric-label sticky-col">Part Uncomplete</td>
+                                <td rowSpan={activeSides.length} className="metric-label sticky-col">Part Complete</td>
                               )}
                               {activeSides.length > 1 && (
                                 <td className="text-center side-label-cell sticky-col side">{side.key}</td>
@@ -1422,7 +1442,7 @@ export default function DashboardPage() {
                                 <th className="text-center">Plan</th>
                                 <th className="text-center">Current</th>
                                 <th className="text-center">Result</th>
-                                <th className="text-center">Part Uncomplete</th>
+                                <th className="text-center">Part Complete</th>
                               </tr>
                             </thead>
                             <tbody>
