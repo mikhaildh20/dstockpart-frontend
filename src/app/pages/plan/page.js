@@ -69,11 +69,11 @@ export default function PlanPage() {
                 const mapped = data.map((item, index) => ({
                     No: (page - 1) * pageSize + index + 1,
                     id: item.Id,
-                    PlanDate: formatDate(item.PlanDate || item.CreatedAt),
+                    "Plan Date": formatDate(item.PlanDate || item.CreatedAt),
                     Shift: `${item.ShiftCode} - ${item.ShiftName}`,
                     Model: item.ModelCode,
-                    QtyR: item.QtyR,
-                    QtyL: item.QtyL,
+                    "Qty R": item.QtyR,
+                    "Qty L": item.QtyL,
                     Action: ["Edit"],
                     Alignment: ["center", "center", "center", "center", "center", "center", "center"],
                 }));

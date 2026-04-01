@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
   DndContext,
   PointerSensor,
@@ -24,7 +24,7 @@ import Button from "@/component/common/Button";
 import Toast from "@/component/common/Toast";
 import Loading from "@/component/common/Loading";
 import fetchData from "@/lib/fetch";
-import { decryptIdUrl } from "@/lib/encryptor";
+import { decryptIdUrl, encryptIdUrl } from "@/lib/encryptor";
 
 function SortableSectionItem({ id, code, name, sequence }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -68,8 +68,10 @@ function SortableSectionItem({ id, code, name, sequence }) {
 
 export default function PartDetailPage() {
   const path = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const id = decryptIdUrl(path.id);
+  const sourceModelId = searchParams.get("modelId");
 
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Part Detail");
@@ -201,8 +203,12 @@ export default function PartDetailPage() {
   }, [sectionRows, sequenceOrder]);
 
   const handleCancel = useCallback(() => {
+    if (sourceModelId) {
+      router.push(`/pages/model/detail/${encryptIdUrl(sourceModelId)}`);
+      return;
+    }
     router.back();
-  }, [router]);
+  }, [router, sourceModelId]);
 
   const handleSubmit = useCallback(
     async (e) => {
@@ -236,14 +242,18 @@ export default function PartDetailPage() {
         setSelectedSectionIds(finalSequence);
         setSequenceOrder(finalSequence);
         Toast.success(response.message || "Section sequence updated successfully");
-        router.push("/pages/part");
+        if (sourceModelId) {
+          router.push(`/pages/model/detail/${encryptIdUrl(sourceModelId)}`);
+        } else {
+          router.push("/pages/part");
+        }
       } catch (err) {
         Toast.error(err.message || "Failed to save section sequence");
       } finally {
         setLoading(false);
       }
     },
-    [mpdId, selectedSectionIds, sequenceOrder]
+    [mpdId, selectedSectionIds, sequenceOrder, router, sourceModelId]
   );
 
   return (
@@ -252,7 +262,9 @@ export default function PartDetailPage() {
       <Breadcrumb
         title={title}
         items={[
-          { label: "Parts Management", href: "/pages/part" },
+          sourceModelId
+            ? { label: "Model Parts", href: `/pages/model/detail/${encryptIdUrl(sourceModelId)}` }
+            : { label: "Parts Management", href: "/pages/part" },
           { label: "Part Detail" },
         ]}
       />

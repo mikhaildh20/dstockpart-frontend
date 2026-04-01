@@ -9,7 +9,7 @@ import { useRouter, useParams } from "next/navigation";
 import fetchData from "@/lib/fetch";
 import Toast from "@/component/common/Toast";
 import Breadcrumb from "@/component/common/Breadcrumb";
-import { decryptIdUrl } from "@/lib/encryptor";
+import { decryptIdUrl, encryptIdUrl } from "@/lib/encryptor";
 import Loading from "@/component/common/Loading";
 import Formsearch from "@/component/common/Formsearch";
 
@@ -76,6 +76,10 @@ export default function ModelDetailPage() {
     const [sortBy, setSortBy] = useState(dataFilterSort[0].Value);
     const [sortStatus, setSortStatus] = useState(dataFilterStatus[0].Value);
 
+    const handleDetail = useCallback((mpdId) => {
+        router.push(`/pages/part/detail/${encryptIdUrl(mpdId)}?modelId=${encodeURIComponent(id)}`);
+    }, [id, router]);
+
     const loadData = useCallback(async (page, sort, cari, status) => {
         try{
             setLoading(true);
@@ -105,6 +109,13 @@ export default function ModelDetailPage() {
                 Code: item.Code,
                 Part: item.Name,
                 Status: item.Status,
+                Action: item.MpdId ? [
+                    {
+                        IconName: "eye",
+                        Title: "See Detail",
+                        Function: () => handleDetail(item.MpdId),
+                    },
+                ] : "-",
                 Alignment: ["center", "center","center","center", "center"],
             }));
 
@@ -118,7 +129,7 @@ export default function ModelDetailPage() {
         }finally{
             setLoading(false);
         }
-    }, [pageSize]);
+    }, [pageSize, id, handleDetail]);
 
     const initialSelectedIds = useMemo(() => {
         return dataParts
@@ -231,7 +242,7 @@ export default function ModelDetailPage() {
                 title={title}
                 items={[
                     { label: "Models Management", href: "/pages/model" },
-                    { label: "Detail Model" },
+                    { label: "Model Parts" },
                 ]}
             />
             <div>
@@ -246,6 +257,12 @@ export default function ModelDetailPage() {
             </div>
             <div className="col-12">
                 <div className="card border-0 shadow-sm">
+                    <div className="card-header bg-white border-0 pb-0">
+                        <h6 className="mb-0">Part Assignment and Section Setup</h6>
+                        <small className="text-secondary">
+                            Check parts to assign them to this model. Use the detail action on active rows to arrange section sequence.
+                        </small>
+                    </div>
                     <div className="card-body p-0">
                         <Table
                                 size="Small"

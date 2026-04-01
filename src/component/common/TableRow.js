@@ -276,7 +276,13 @@ export default function TableRow({
         } else if (col === "Action") {
           cell = (
             <div className="d-flex justify-content-center align-items-center gap-1">
-              {renderAction(row[col], row.id, row.Status)}
+              {Array.isArray(row[col]) ? (
+                renderAction(row[col], row.id, row.Status)
+              ) : (
+                <div className="px-2" style={{ fontSize: 13, color: "#6c757d" }}>
+                  {row[col] ?? "-"}
+                </div>
+              )}
             </div>
           );
         } else if (typeof row[col] === "string") {

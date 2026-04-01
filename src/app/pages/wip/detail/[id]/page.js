@@ -23,6 +23,7 @@ export default function WipDetailPage() {
     const [canInput, setCanInput] = useState(true);
     const [logs, setLogs] = useState([]);
     const [logDate, setLogDate] = useState("");
+    const [missingSectionParts, setMissingSectionParts] = useState([]);
 
     const groupedRows = rows.reduce((acc, row) => {
         const key = `${row.partCode}||${row.partName}`;
@@ -51,6 +52,7 @@ export default function WipDetailPage() {
             setShiftInfo(`${data.ShiftCode || "-"} - ${data.ShiftName || "-"} (${data.ShiftStart || "-"} - ${data.ShiftEnd || "-"})`);
             setShiftId(data.ShiftId || null);
             setCanInput(data.CanInput !== false);
+            setMissingSectionParts(Array.isArray(data.MissingSectionParts) ? data.MissingSectionParts : []);
 
             const mapped = (Array.isArray(data.Sections) ? data.Sections : []).map((item) => ({
                 mpsdId: item.MpsdId,
@@ -183,6 +185,15 @@ export default function WipDetailPage() {
                     </div>
 
                     <form onSubmit={handleSave}>
+                        {missingSectionParts.length > 0 && (
+                            <div className="alert alert-warning py-2 px-3" style={{ fontSize: 13 }}>
+                                Some parts in this model still do not have section sequence for WIP:
+                                {" "}
+                                {missingSectionParts
+                                    .map((item) => `${item.PartCode} - ${item.PartName}`)
+                                    .join(", ")}
+                            </div>
+                        )}
                         <div className="table-responsive">
                             <table className="table table-sm table-bordered align-middle">
                                 <thead>
@@ -199,7 +210,9 @@ export default function WipDetailPage() {
                                     {rows.length === 0 ? (
                                         <tr>
                                             <td colSpan={6} className="text-center text-secondary">
-                                                No section data available for this model.
+                                                {missingSectionParts.length > 0
+                                                    ? "No section data available because the model parts have not been assigned section sequence yet."
+                                                    : "No section data available for this model."}
                                             </td>
                                         </tr>
                                     ) : (

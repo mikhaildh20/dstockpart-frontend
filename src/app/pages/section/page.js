@@ -67,7 +67,7 @@ export default function SectionPage(){
                 Code: item.Code,
                 Name: item.Name,
                 Status: item.Status === 1 ? "Active" : "Inactive",
-                Action: ["Edit", "Toggle", "Detail"],
+                Action: ["Edit", "Toggle"],
                 Alignment: ["center", "center","center","center", "center"],
             }));
 

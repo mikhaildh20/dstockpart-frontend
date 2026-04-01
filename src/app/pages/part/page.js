@@ -69,7 +69,7 @@ export default function PartPage(){
                 Code: item.Code,
                 Name: item.Name,
                 Status: item.Status === 1 ? "Active" : "Inactive",
-                Action: ["Edit", "Toggle", "Detail"],
+                Action: ["Edit", "Toggle"],
                 Alignment: ["center", "center","center","center", "center"],
             }));
 
@@ -112,12 +112,6 @@ export default function PartPage(){
         (id) =>
         router.push(`/pages/part/edit/${encryptIdUrl(id)}`),
         [router]
-    );
-
-    const handleDetail = useCallback(
-        (id) => {
-            router.push(`/pages/part/detail/${encryptIdUrl(id)}`);
-        }
     );
 
     const handleToggle = useCallback(
@@ -217,7 +211,6 @@ return (
                                 data={dataPart}
                                 onEdit={handleEdit}
                                 onToggle={handleToggle}
-                                onDetail={handleDetail}
                         />
                         {totalData > 0 && (
                             <div className="p-3 border-top">
